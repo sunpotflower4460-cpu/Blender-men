@@ -185,7 +185,8 @@ def main():
         t1 = time.time()
         baked = bake.bake_object(obj, out, "fabric", size=args.texture_size, normal=True)
         bake_time = time.time() - t1
-        covered = covered_body_verts(ref, obj)
+        # 靴は足の凸包から作るのでつま先で足から離れる。届く距離を広げる
+        covered = covered_body_verts(ref, obj, max_dist=spec.get("cover_reach", 0.05))
         delete_verts = [eval_map[i] for i in covered]
         path, match_time = write_mhclo(human, obj, "clothes", name, out, f"{name} ({spec['fabric']})",
                                        delete_verts=delete_verts)
