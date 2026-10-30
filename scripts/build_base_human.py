@@ -75,8 +75,8 @@ def parse_args():
     parser.add_argument("--output", help="保存先 .blend（省略時 models/<name>_human.blend）")
     parser.add_argument("--preview", help="プレビュー PNG の保存先（省略時は描画しない）")
     parser.add_argument("--no-rig", action="store_true", help="Rigify のコントロールリグを生成しない")
-    parser.add_argument("--body", choices=["skin", "capsule"], default="capsule",
-                        help="体表: capsule=簡易カプセル（既定・軸モデル）, skin=写実寄りの Skin メッシュ")
+    parser.add_argument("--body", choices=["makehuman", "skin", "capsule"], default="capsule",
+                        help="体表: capsule=簡易カプセル（既定・軸モデル）, skin=Skin メッシュ, makehuman=MakeHuman 基本メッシュ（CC0）")
     return parser.parse_args(argv)
 
 
@@ -446,6 +446,55 @@ def bind_auto_weights(body, armature):
     bpy.ops.object.select_all(action="DESELECT")
 
 
+# ---------------------------------------------------------------------------
+# 人体ベースメッシュ（MakeHuman, CC0）を骨格に貼る
+#
+# MakeHuman は Y 軸が上・単位がデシメートルなので、回転と拡縮で Z 軸上・メートルに合わせ、
+# 足裏を Z=0 に置いてから自動ウェイトで DEF ボーンに結びつける。
+# 顔・手・体表の凹凸は元メッシュのものをそのまま使う。
+# 骨格のプロポーション倍率はこのメッシュには反映されない（身長のみ合わせる）。
+# ---------------------------------------------------------------------------
+
+MAKEHUMAN_MESH = os.path.join(REPO_ROOT, "assets", "makehuman_base.obj")
+
+
+def build_body_makehuman(params, path=MAKEHUMAN_MESH):
+    before = set(bpy.data.objects)
+    bpy.ops.wm.obj_import(filepath=path)
+    body = next(o for o in bpy.data.objects if o not in before)
+    body.name = "BH_body"
+    body.data.name = "BH_body"
+    for c in list(body.users_collection):
+        c.objects.unlink(body)
+    bpy.context.collection.objects.link(body)
+
+    # MakeHuman 座標（Y 上）を Blender（Z 上）へ。デシメートル → メートル
+    body.rotation_euler = (math.radians(90), 0, 0)
+    bpy.context.view_layer.update()
+    zs = [(body.matrix_world @ v.co).z for v in body.data.vertices]
+    scale = params["height"] / (max(zs) - min(zs))
+    body.scale = (scale, scale, scale)
+    bpy.context.view_layer.objects.active = body
+    body.select_set(True)
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    zmin = min(v.co.z for v in body.data.vertices)
+    body.location.z = -zmin
+    bpy.ops.object.transform_apply(location=True)
+
+    mat = bpy.data.materials.new("BH_skin_neutral")
+    mat.diffuse_color = (0.80, 0.66, 0.56, 1.0)
+    body.data.materials.clear()
+    body.data.materials.append(mat)
+    # 元データの面の向きが揃っていない場合があるため、法線を外向きに統一する
+    bpy.context.view_layer.objects.active = body
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    bpy.ops.object.shade_smooth()
+    return body
+
+
 def organize(objects, params):
     coll = bpy.data.collections.new("BaseHuman")
     bpy.context.scene.collection.children.link(coll)
@@ -502,7 +551,10 @@ def main():
     objects = [metarig]
     if not args.no_rig:
         rig = generate_rig(metarig)
-        if args.body == "skin":
+        if args.body == "makehuman":
+            body = build_body_makehuman(params)
+            bind_auto_weights(body, rig)
+        elif args.body == "skin":
             body = build_body_skin(metarig, params)
             bind_auto_weights(body, rig)
         else:
