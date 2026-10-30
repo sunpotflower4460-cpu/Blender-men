@@ -12,6 +12,7 @@ import os
 import sys
 
 import bpy
+from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
 EXPECTED_BONES = 53
@@ -66,8 +67,18 @@ def material_is_exportable(obj):
     return True
 
 
-def exposed_hidden_skin(body, clothes, reach=0.06):
-    """Delete マスクで隠した体の頂点のうち、法線方向 reach 以内に同じ向きの服の面がないものを数える。"""
+ENCLOSE_DIRS = [Vector(d) for d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, -1))]
+
+
+def enclosed(tree, p, reach=0.3):
+    """p が服の殻（靴など）に囲まれているか: 横 4 方向と下へ飛ばした光線がすべて同じ服に当たる。
+    上には飛ばさない（靴は足首が開いている）。シャツやズボンは裾が開いているので下向きの光線が抜ける。"""
+    return all(tree.ray_cast(p, d, reach)[0] is not None for d in ENCLOSE_DIRS)
+
+
+def exposed_hidden_skin(body, clothes, reach=0.06, samples=None):
+    """Delete マスクで隠した体の頂点のうち、法線方向 reach 以内に同じ向きの服の面がなく、
+    服の殻にも囲まれていないものを数える。"""
     masks = [m for m in body.modifiers if m.type == "MASK" and m.name.startswith("Delete")]
     if not masks or not clothes:
         return 0, 0
@@ -102,7 +113,11 @@ def exposed_hidden_skin(body, clothes, reach=0.06):
                 covered = True
                 break
         if not covered:
+            covered = any(enclosed(t, p) for t in trees)
+        if not covered:
             exposed += 1
+            if samples is not None and len(samples) < 20:
+                samples.append([round(c, 3) for c in p])
     ev.to_mesh_clear()
     for m in masks:
         m.show_viewport = True
@@ -219,9 +234,10 @@ def main():
 
     # 隠した肌の露出: 服の下として隠した体の頂点の真上（法線方向）に服があるか。
     # 服がない所を隠すと、体の内側（黒い穴）が見える。
-    exposed, hidden = exposed_hidden_skin(body, clothes)
+    samples = []
+    exposed, hidden = exposed_hidden_skin(body, clothes, samples=samples)
     report["hidden_skin"] = {"hidden_vertices": hidden, "exposed": exposed,
-                             "exposed_ratio": round(exposed / max(1, hidden), 4)}
+                             "exposed_ratio": round(exposed / max(1, hidden), 4), "exposed_samples": samples}
     if hidden and exposed / hidden > 0.005:
         failures.append(f"服: 隠した肌のうち真上に服がない頂点 {exposed}/{hidden}（体に穴が見える）")
 

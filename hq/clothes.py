@@ -220,7 +220,7 @@ GARMENTS = {
               "color": (0.055, 0.085, 0.17), "fabric": "denim", "thickness": 0.0035, "roughness": 0.8},
     "sneakers": {"region": region_shoes, "ease": lambda r, c, b: 0.0075, "pin": None, "sim_frames": 0,
                  "color": (0.78, 0.78, 0.76), "fabric": "leather", "thickness": 0.004, "roughness": 0.55,
-                 "sole": {"color": (0.92, 0.92, 0.9), "height": 0.012}, "cover_reach": 0.08, "cover_inside": True},
+                 "sole": {"color": (0.92, 0.92, 0.9), "height": 0.012}, "cover_reach": 0.08, "cover_enclosed": True},
     "dress_shirt": {"region": region_dress_shirt, "ease": ease_dress_shirt, "pin": pin_shirt, "sim_frames": 10,
                     "color": (0.62, 0.71, 0.84), "fabric": "cotton", "thickness": 0.002, "roughness": 0.7,
                     "collar": True},
@@ -228,7 +228,7 @@ GARMENTS = {
                "color": (0.07, 0.07, 0.08), "fabric": "wool", "thickness": 0.003, "roughness": 0.75},
     "dress_shoes": {"region": region_shoes, "ease": lambda r, c, b: 0.006, "pin": None, "sim_frames": 0,
                     "color": (0.07, 0.04, 0.025), "fabric": "leather", "thickness": 0.004, "roughness": 0.3,
-                    "sole": {"color": (0.03, 0.025, 0.02), "height": 0.010}, "cover_reach": 0.08, "cover_inside": True},
+                    "sole": {"color": (0.03, 0.025, 0.02), "height": 0.010}, "cover_reach": 0.08, "cover_enclosed": True},
 }
 
 OUTFITS = {
@@ -547,20 +547,43 @@ def add_collar(bm, ref, height=0.032, fold=0.042):
         v.co += radial * 0.022 + Vector((0, 0, -fold * 0.75))
 
 
+def dominant_bone(ref, v):
+    bone, best = "", 0.0
+    for g in v.groups:
+        n = ref.names.get(g.group, "")
+        if n in ref.bones and g.weight > best:
+            best, bone = g.weight, n
+    return bone
+
+
+def shoe_source_verts(ref, side):
+    """靴の殻の元にする足の頂点（足・指の付け根の骨に属するか、足首より少し上までのふくらはぎ）。"""
+    foot_h, _ = ref.bones[f"foot_{side}"]
+    out = []
+    for v in ref.mesh.vertices:
+        bone = dominant_bone(ref, v)
+        if bone in (f"foot_{side}", f"ball_{side}") or (bone == f"calf_{side}" and v.co.z < foot_h.z + 0.05):
+            out.append(v)
+    return out
+
+
+def shoe_enclosed_verts(ref, margin=0.012):
+    """靴の殻に必ず包まれる体の頂点。殻は shoe_source_verts を外へ押し出した凸包なので、
+    足首の開口（foot.z + 0.03）より margin 下までの元頂点はすべて内側にある。"""
+    out = set()
+    for side in ("l", "r"):
+        top = ref.bones[f"foot_{side}"][0].z + 0.03 - margin
+        out.update(v.index for v in shoe_source_verts(ref, side) if v.co.z < top)
+    return out
+
+
 def shoe_mesh(ref, side, spec):
     """片足の靴: 足の凸包（指の凹凸がない外形）→ ボクセルで作り直し → 平滑化 → 足首の開口 → 靴底。"""
     from mathutils.kdtree import KDTree  # noqa: F401  （重みの転写は copy_weights で行う）
     foot_h, _ = ref.bones[f"foot_{side}"]
     bm = bmesh.new()
-    src = ref.mesh
-    for v in src.vertices:
-        bone, best = "", 0.0
-        for g in v.groups:
-            n = ref.names.get(g.group, "")
-            if n in ref.bones and g.weight > best:
-                best, bone = g.weight, n
-        if bone in (f"foot_{side}", f"ball_{side}") or (bone == f"calf_{side}" and v.co.z < foot_h.z + 0.05):
-            bm.verts.new(v.co + v.normal * 0.007)
+    for v in shoe_source_verts(ref, side):
+        bm.verts.new(v.co + v.normal * 0.007)
     hull = bmesh.ops.convex_hull(bm, input=list(bm.verts))
     inner = {g for g in hull["geom_interior"] + hull["geom_unused"] if isinstance(g, bmesh.types.BMVert)}
     bmesh.ops.delete(bm, geom=list(inner), context="VERTS")
