@@ -120,3 +120,19 @@ scripts/build_base_human.py    メタリグ調整 → リグ生成 → マネキ
 scripts/render_pose_test.py    関節を曲げた確認画像を描画
 previews/                      プレビュー画像
 ```
+
+## 写実寄りの体（別ファイル）
+
+軸モデル `models/base_human.blend` はそのまま残し、体表だけ滑らかにした版を別ファイルで作れます。
+関節・リグ・パラメータは軸モデルと共通なので、どちらもそのまま同じ方法で関節を動かせます。
+
+```bash
+python scripts/build_base_human.py --preset presets/base.json --body skin \
+  --output models/base_human_realistic.blend --preview previews/realistic.png
+```
+
+- `--body capsule`（既定）: 軸モデルと同じ簡易カプセル体
+- `--body skin`: 関節位置に断面の半径を置き、Skin モディファイアで張って Subdivision で滑らかにした体。
+  腰・ふくらはぎ・肩などの量感は `scripts/build_base_human.py` 内の半径で調整する
+
+現状の限界: 顔の造形・手の指の形・体表の筋肉の凹凸はまだありません（人体の写実化は今後の課題）。

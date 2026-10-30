@@ -75,6 +75,8 @@ def parse_args():
     parser.add_argument("--output", help="保存先 .blend（省略時 models/<name>_human.blend）")
     parser.add_argument("--preview", help="プレビュー PNG の保存先（省略時は描画しない）")
     parser.add_argument("--no-rig", action="store_true", help="Rigify のコントロールリグを生成しない")
+    parser.add_argument("--body", choices=["skin", "capsule"], default="capsule",
+                        help="体表: capsule=簡易カプセル（既定・軸モデル）, skin=写実寄りの Skin メッシュ")
     return parser.parse_args(argv)
 
 
@@ -328,6 +330,122 @@ def build_body(armature, params):
     return body
 
 
+# ---------------------------------------------------------------------------
+# 写実寄りの体表メッシュ（Skin モディファイア + Subdivision）
+#
+# メタリグの関節位置に「断面の半径」を持つノードを置き、それを骨格グラフとして
+# Skin モディファイアで張る。関節のつながりが自然に滑らかになり、
+# 腰・ふくらはぎ・肩などの量感を半径の数値だけで調整できる。
+# 半径は (左右方向, 前後方向) の半分の幅 [m]、身長 1.70m 基準。
+# ---------------------------------------------------------------------------
+
+def build_body_skin(metarig, params):
+    size = params["height"] / REFERENCE_HEIGHT
+    g = size * params["girth"]
+    bones = metarig.data.bones
+
+    def at(bone, t=0.0):
+        b = bones[bone]
+        return b.head_local.lerp(b.tail_local, t)
+
+    nodes = {}   # キー -> (位置, 左右半径, 前後半径, 端を閉じるか)
+    def node(key, p, rx, ry, root=False):
+        nodes[key] = (p.copy(), rx * g, ry * g, root)
+        return key
+
+    chains = []
+    top = at("spine.006", 1.0)
+
+    # 体幹（骨盤 → 胸 → 首 → 頭頂）
+    trunk = [
+        node("pelvis", at("spine"), 0.160, 0.110),
+        node("waist", at("spine.001"), 0.140, 0.095),
+        node("lowrib", at("spine.002"), 0.150, 0.110),
+        node("chest", at("spine.003"), 0.170, 0.120),
+        node("neck_base", at("spine.004"), 0.085, 0.070),
+        node("neck", at("spine.005"), 0.055, 0.055),
+        node("neck_top", at("spine.006"), 0.050, 0.050),
+    ]
+    chains.append(trunk)
+
+    # 頭（頭頂から顎まで。Z 方向に並べた楕円体）
+    chains.append([
+        "neck_top",
+        node("jaw", top - Vector((0, 0, 0.13)), 0.072, 0.085),
+        node("head_mid", top - Vector((0, 0, 0.075)), 0.085, 0.100),
+        node("head_top", top - Vector((0, 0, 0.010)), 0.030, 0.040, root=True),
+    ])
+
+    for s in ("L", "R"):
+        # 肩〜腕（肩甲骨の付け根から手首・指先まで）
+        clav = node(f"clavicle_{s}", at(f"shoulder.{s}", 1.0), 0.060, 0.060)
+        chains.append(["chest", clav])
+        chains.append([
+            clav,
+            node(f"shoulder_{s}", at(f"upper_arm.{s}"), 0.072, 0.068),
+            node(f"biceps_{s}", at(f"upper_arm.{s}", 0.5), 0.064, 0.060),
+            node(f"elbow_{s}", at(f"forearm.{s}"), 0.048, 0.046),
+            node(f"forearm_{s}", at(f"forearm.{s}", 0.4), 0.056, 0.050),
+            node(f"wrist_{s}", at(f"hand.{s}"), 0.034, 0.026),
+            node(f"hand_{s}", at(f"hand.{s}", 1.0), 0.032, 0.012, root=True),
+        ])
+
+        # 脚（骨盤から足先まで。腿の付け根は骨盤に溶け込ませる）
+        chains.append([
+            "pelvis",
+            node(f"hip_{s}", at(f"thigh.{s}"), 0.120, 0.115),
+            node(f"thigh_{s}", at(f"thigh.{s}", 0.5), 0.098, 0.095),
+            node(f"knee_{s}", at(f"shin.{s}"), 0.062, 0.056),
+            node(f"calf_{s}", at(f"shin.{s}", 0.35), 0.072, 0.066),
+            node(f"ankle_{s}", at(f"foot.{s}"), 0.034, 0.030),
+            node(f"ball_{s}", at(f"foot.{s}", 1.0), 0.036, 0.020),
+            node(f"toe_{s}", at(f"toe.{s}", 1.0), 0.028, 0.012, root=True),
+        ])
+
+    keys = list(nodes)
+    index = {k: i for i, k in enumerate(keys)}
+    edges = set()
+    for ch in chains:
+        for a, b in zip(ch, ch[1:]):
+            edges.add(tuple(sorted((index[a], index[b]))))
+
+    mesh = bpy.data.meshes.new("BH_body")
+    mesh.from_pydata([tuple(nodes[k][0]) for k in keys], sorted(edges), [])
+    mesh.update()
+    body = bpy.data.objects.new("BH_body", mesh)
+    bpy.context.collection.objects.link(body)
+    bpy.context.view_layer.objects.active = body
+    body.select_set(True)
+
+    skin = body.modifiers.new("Skin", "SKIN")
+    layer = mesh.skin_vertices[0].data
+    for k in keys:
+        _, rx, ry, root = nodes[k]
+        layer[index[k]].radius = (rx, ry)
+        layer[index[k]].use_root = root
+    bpy.ops.object.modifier_apply(modifier=skin.name)
+
+    sub = body.modifiers.new("Subdivision", "SUBSURF")
+    sub.levels = 2
+    sub.render_levels = 2
+    bpy.ops.object.modifier_apply(modifier=sub.name)
+
+    # 骨格へ自動ウェイト（DEF ボーンのみが対象）
+    bpy.ops.object.shade_smooth()
+    body.data.materials.append(bpy.data.materials.new("BH_skin_neutral"))
+    body.data.materials[0].diffuse_color = (0.80, 0.66, 0.56, 1.0)
+    return body
+
+
+def bind_auto_weights(body, armature):
+    bpy.ops.object.select_all(action="DESELECT")
+    body.select_set(True)
+    armature.select_set(True)
+    bpy.context.view_layer.objects.active = armature
+    bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+    bpy.ops.object.select_all(action="DESELECT")
+
+
 def organize(objects, params):
     coll = bpy.data.collections.new("BaseHuman")
     bpy.context.scene.collection.children.link(coll)
@@ -384,7 +502,11 @@ def main():
     objects = [metarig]
     if not args.no_rig:
         rig = generate_rig(metarig)
-        body = build_body(rig, params)
+        if args.body == "skin":
+            body = build_body_skin(metarig, params)
+            bind_auto_weights(body, rig)
+        else:
+            body = build_body(rig, params)
         objects += [rig, body]
     organize(objects, params)
 
