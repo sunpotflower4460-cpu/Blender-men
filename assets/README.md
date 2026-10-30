@@ -5,3 +5,8 @@
 MakeHuman の基本メッシュ（`makehuman/data/3dobjs/base.obj`、MakeHuman Community 配布）。
 ファイル冒頭に "explicitly released as CC0 in september 2020" と明記されています。
 ライセンス全文: https://github.com/makehumancommunity/makehuman/blob/master/LICENSE.md （Assets 節）
+
+## eyes/
+
+MakeHuman の目のプロキシ（`eyes/low-poly/low-poly.obj`）と目の色テクスチャ（`eyes/materials/brown_eye.png`）。
+同じく CC0 1.0（MakeHuman LICENSE.ASSETS.md）。
