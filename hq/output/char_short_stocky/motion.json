@@ -1,0 +1,287 @@
+{
+  "blend": "/tmp/claude-0/-home-user-Blender-men/5f7f36a2-f2da-5203-b4a8-32065810d610/scratchpad/hq/gen/char_short_stocky/char_short_stocky.blend",
+  "glb": "/tmp/claude-0/-home-user-Blender-men/5f7f36a2-f2da-5203-b4a8-32065810d610/scratchpad/hq/gen/char_short_stocky/char_short_stocky.glb",
+  "poses": {
+    "rest": {
+      "edges": 16710,
+      "bad_edges": 0,
+      "bad_ratio": 0.0,
+      "max_stretch": 1.0,
+      "min_shrink": 1.0,
+      "eye_drift_m": 0.0,
+      "penetration": {
+        "BH_clothes_dress_shirt": {
+          "visible": 0.00253,
+          "under": 0.00243
+        },
+        "BH_clothes_dress_shoes": {
+          "visible": 0.01154,
+          "under": 0.05499
+        },
+        "BH_clothes_slacks": {
+          "visible": 0.0,
+          "under": 0.0
+        }
+      }
+    },
+    "punch": {
+      "edges": 16710,
+      "bad_edges": 17,
+      "bad_ratio": 0.00102,
+      "max_stretch": 4.202,
+      "min_shrink": 0.114,
+      "eye_drift_m": 0.0,
+      "penetration": {
+        "BH_clothes_dress_shirt": {
+          "visible": 0.00628,
+          "under": 0.01616
+        },
+        "BH_clothes_dress_shoes": {
+          "visible": 0.01147,
+          "under": 0.05499
+        },
+        "BH_clothes_slacks": {
+          "visible": 0.0,
+          "under": 0.0
+        }
+      }
+    },
+    "kick": {
+      "edges": 16710,
+      "bad_edges": 32,
+      "bad_ratio": 0.00192,
+      "max_stretch": 8.086,
+      "min_shrink": 0.1,
+      "eye_drift_m": 0.0,
+      "penetration": {
+        "BH_clothes_dress_shirt": {
+          "visible": 0.02458,
+          "under": 0.04478
+        },
+        "BH_clothes_dress_shoes": {
+          "visible": 0.01036,
+          "under": 0.05506
+        },
+        "BH_clothes_slacks": {
+          "visible": 0.00316,
+          "under": 0.021
+        }
+      }
+    },
+    "crouch": {
+      "edges": 16710,
+      "bad_edges": 23,
+      "bad_ratio": 0.00138,
+      "max_stretch": 5.739,
+      "min_shrink": 0.085,
+      "eye_drift_m": 0.0,
+      "penetration": {
+        "BH_clothes_dress_shirt": {
+          "visible": 0.00608,
+          "under": 0.01709
+        },
+        "BH_clothes_dress_shoes": {
+          "visible": 0.01119,
+          "under": 0.05485
+        },
+        "BH_clothes_slacks": {
+          "visible": 0.00123,
+          "under": 0.02408
+        }
+      }
+    }
+  },
+  "glb_check": {
+    "size_bytes": 8045688,
+    "bones": 53,
+    "meshes": [
+      "BH_body",
+      "BH_clothes_dress_shirt",
+      "BH_clothes_dress_shoes",
+      "BH_clothes_slacks",
+      "BH_eyelashes",
+      "BH_eyes",
+      "BH_hair_side_part"
+    ],
+    "has_animation": true,
+    "vertex_error": {
+      "BH_body": {
+        "rest_map_err_m": 1e-06,
+        "vertices_glb": 9231,
+        "vertices_blender": 8465,
+        "rest": {
+          "max_m": 1e-06,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "punch": {
+          "max_m": 1e-06,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "kick": {
+          "max_m": 1e-06,
+          "p99_m": 1e-06,
+          "mean_m": 0.0
+        },
+        "crouch": {
+          "max_m": 1e-06,
+          "p99_m": 1e-06,
+          "mean_m": 0.0
+        }
+      },
+      "BH_clothes_dress_shirt": {
+        "rest_map_err_m": 1e-06,
+        "vertices_glb": 21500,
+        "vertices_blender": 20544,
+        "rest": {
+          "max_m": 1e-06,
+          "p99_m": 1e-06,
+          "mean_m": 0.0
+        },
+        "punch": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "kick": {
+          "max_m": 1e-06,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "crouch": {
+          "max_m": 1e-06,
+          "p99_m": 1e-06,
+          "mean_m": 0.0
+        }
+      },
+      "BH_clothes_dress_shoes": {
+        "rest_map_err_m": 0.0,
+        "vertices_glb": 14177,
+        "vertices_blender": 14476,
+        "rest": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "punch": {
+          "max_m": 1e-06,
+          "p99_m": 1e-06,
+          "mean_m": 0.0
+        },
+        "kick": {
+          "max_m": 1e-06,
+          "p99_m": 1e-06,
+          "mean_m": 0.0
+        },
+        "crouch": {
+          "max_m": 1e-06,
+          "p99_m": 1e-06,
+          "mean_m": 0.0
+        }
+      },
+      "BH_clothes_slacks": {
+        "rest_map_err_m": 0.0,
+        "vertices_glb": 11698,
+        "vertices_blender": 11380,
+        "rest": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "punch": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "kick": {
+          "max_m": 1e-06,
+          "p99_m": 1e-06,
+          "mean_m": 0.0
+        },
+        "crouch": {
+          "max_m": 1e-06,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        }
+      },
+      "BH_eyelashes": {
+        "rest_map_err_m": 0.0,
+        "vertices_glb": 250,
+        "vertices_blender": 250,
+        "rest": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "punch": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "kick": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "crouch": {
+          "max_m": 1e-06,
+          "p99_m": 1e-06,
+          "mean_m": 0.0
+        }
+      },
+      "BH_eyes": {
+        "rest_map_err_m": 0.0,
+        "vertices_glb": 1076,
+        "vertices_blender": 1064,
+        "rest": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "punch": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "kick": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "crouch": {
+          "max_m": 1e-06,
+          "p99_m": 1e-06,
+          "mean_m": 0.0
+        }
+      },
+      "BH_hair_side_part": {
+        "rest_map_err_m": 0.0,
+        "vertices_glb": 40800,
+        "vertices_blender": 40800,
+        "rest": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "punch": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "kick": {
+          "max_m": 0.0,
+          "p99_m": 0.0,
+          "mean_m": 0.0
+        },
+        "crouch": {
+          "max_m": 1e-06,
+          "p99_m": 1e-06,
+          "mean_m": 0.0
+        }
+      }
+    }
+  },
+  "failures": [],
+  "passed": true
+}

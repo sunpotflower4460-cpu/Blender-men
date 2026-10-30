@@ -1,0 +1,32 @@
+{
+  "name": "char_tall_slim",
+  "config": "hq/config/char_tall_slim.json",
+  "stages": {
+    "build": {
+      "ok": true,
+      "seconds": 253.2,
+      "input_hash": "7da13d1ca8c09e49",
+      "finished": "2026-10-30T13:21:24"
+    },
+    "checks": {
+      "ok": true,
+      "seconds": 1.7,
+      "input_hash": "a1df3961c30bda2a",
+      "finished": "2026-10-30T13:21:26"
+    },
+    "render": {
+      "ok": true,
+      "seconds": 203.2,
+      "input_hash": "2f28dadbcbc18e32",
+      "finished": "2026-10-30T13:24:49"
+    },
+    "validate": {
+      "ok": true,
+      "seconds": 21.0,
+      "input_hash": "c75325eb766d5b07",
+      "finished": "2026-10-30T13:25:10"
+    }
+  },
+  "passed": true,
+  "total_seconds": 479.1
+}

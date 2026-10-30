@@ -1,0 +1,26 @@
+{
+  "build": {
+    "ok": true,
+    "seconds": 205.4,
+    "input_hash": "31c790ef3ad1e958",
+    "finished": "2026-10-30T13:10:53"
+  },
+  "checks": {
+    "ok": true,
+    "seconds": 1.4,
+    "input_hash": "2808454a6e1978bf",
+    "finished": "2026-10-30T13:10:54"
+  },
+  "render": {
+    "ok": true,
+    "seconds": 85.8,
+    "input_hash": "24f4b689f10cb46d",
+    "finished": "2026-10-30T13:12:20"
+  },
+  "validate": {
+    "ok": true,
+    "seconds": 19.5,
+    "input_hash": "b14e6f9b490b6d8b",
+    "finished": "2026-10-30T13:12:40"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "char_standard",
+  "config": "hq/config/char_standard.json",
+  "stages": {
+    "build": {
+      "ok": true,
+      "seconds": 235.5,
+      "input_hash": "a54b02ac5a092d39",
+      "finished": "2026-10-30T13:05:49"
+    },
+    "checks": {
+      "ok": true,
+      "seconds": 1.4,
+      "input_hash": "01b41248896cb3a4",
+      "finished": "2026-10-30T13:05:50"
+    },
+    "render": {
+      "ok": true,
+      "seconds": 77.8,
+      "input_hash": "c06b99e2ea624196",
+      "finished": "2026-10-30T13:07:08"
+    },
+    "validate": {
+      "ok": true,
+      "seconds": 19.4,
+      "input_hash": "719c540a182a815c",
+      "finished": "2026-10-30T13:07:27"
+    }
+  },
+  "passed": true,
+  "total_seconds": 334.1
+}
