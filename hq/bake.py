@@ -95,6 +95,23 @@ def bake_object(obj, out_dir, prefix, size=2048, normal=False, margin=8):
     return results
 
 
+def composite_over(color_image, overlay_path, out_path):
+    """焼き込んだ色の画像の上に、同じ UV の RGBA 画像（頭皮の下地など）をアルファで重ねて保存する。"""
+    import numpy as np
+    from PIL import Image
+    base = Image.open(bpy.path.abspath(color_image.filepath_raw)).convert("RGB")
+    over = Image.open(overlay_path).convert("RGBA")
+    if over.size != base.size:
+        over = over.resize(base.size, Image.LANCZOS)
+    b = np.asarray(base, dtype=np.float32)
+    o = np.asarray(over, dtype=np.float32)
+    a = o[..., 3:4] / 255.0
+    out = (o[..., :3] * a + b * (1 - a)).round().astype(np.uint8)
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    Image.fromarray(out, "RGB").save(out_path)
+    return bpy.data.images.load(out_path, check_existing=False)
+
+
 def game_material(name, color_image, normal_image=None, roughness=0.5, alpha_blend=False):
     """glTF で書き出せる単純なマテリアル（画像テクスチャ + Principled BSDF）。"""
     mat = bpy.data.materials.new(name)

@@ -52,6 +52,7 @@ class Builder:
         self.eyes = None
         self.eyelashes = None
         self.hair = None
+        self.scalp_ink = None
         self.clothes = []
         self.HumanService = mpfb_env.service("mpfb.services.humanservice", "HumanService")
         self.TargetService = mpfb_env.service("mpfb.services.targetservice", "TargetService")
@@ -190,7 +191,12 @@ class Builder:
             hair.assign_weights(obj, head)
             head.free()
             if spec.get("scalp"):
-                face_details.attach_ink_layer(self.human, os.path.join(folder, spec["scalp"]), "BH_scalp")
+                # 頭皮の下地は焼き込んだ色の上に重ねる（materials）。MPFB のインクレイヤーは肌と
+                # オーバーレイで混ざるので薄い茶色にしかならず、髪の間から肌色が見える。
+                # 焼き込みに含めないので、髪型だけを替えるときも焼き込みを使い回せる
+                self.scalp_ink = os.path.join(folder, spec["scalp"])
+                if not self.config.get("bake", {}).get("enabled", True):
+                    face_details.attach_ink_layer(self.human, self.scalp_ink, "BH_scalp")
             return obj
         self.hair = self._timed("hair", run)
 
@@ -238,12 +244,15 @@ class Builder:
         def run():
             name = self.config["name"]
             if reuse:
-                # 同じ体型・同じ頭皮の焼き込み結果を使い回す（髪型や服だけを替えた比較用）
+                # 同じ体型の焼き込み結果を使い回す（髪型や服だけを替えた比較用。頭皮の下地は後から重ねる）
                 baked = {"color": bpy.data.images.load(f"{reuse}_color.png", check_existing=True),
                          "normal": bpy.data.images.load(f"{reuse}_normal.png", check_existing=True)}
                 baked["normal"].colorspace_settings.name = "Non-Color"
             else:
                 baked = bake.bake_object(self.human, self.texture_dir, f"{name}_body", size=res, normal=True)
+            if self.scalp_ink:
+                baked["color"] = bake.composite_over(baked["color"], self.scalp_ink,
+                                                     os.path.join(self.texture_dir, f"{name}_skin_color.png"))
             skin = bake.game_material("BH_skin", baked["color"], baked["normal"],
                                       roughness=self.config.get("skin", {}).get("roughness", 0.5))
             self.human.data.materials.clear()
