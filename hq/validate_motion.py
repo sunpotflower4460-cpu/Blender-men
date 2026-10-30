@@ -185,33 +185,73 @@ def edge_stats(rest, posed, edges):
             "max_stretch": round(worst_stretch, 3), "min_shrink": round(worst_shrink, 3)}
 
 
+LIMBS = {"upperarm": "arm", "lowerarm": "arm", "hand": "arm", "thumb": "arm", "index": "arm", "middle": "arm",
+         "ring": "arm", "pinky": "arm", "thigh": "leg", "calf": "leg", "foot": "leg", "ball": "leg"}
+
+
+def body_region(bone):
+    """骨 → 体の部位（胴 / 左右の腕 / 左右の脚）。鎖骨は胴と腕の両方に属する。"""
+    head, _, side = bone.rpartition("_")
+    if bone.startswith("clavicle"):
+        return {"torso", f"arm_{side}"}
+    for prefix, limb in LIMBS.items():
+        if bone.startswith(prefix):
+            return {f"{limb}_{side}"}
+    return {"torso"}
+
+
+def dominant_regions(obj, mesh):
+    names = {g.index: g.name for g in obj.vertex_groups}
+    bones = {b.name for b in obj.find_armature().data.bones} if obj.find_armature() else set()
+    out = []
+    for v in mesh.vertices:
+        best = max(((names.get(g.group, ""), g.weight) for g in v.groups if names.get(g.group, "") in bones),
+                   key=lambda t: t[1], default=("", 0.0))
+        out.append(body_region(best[0]) if best[0] else {"torso"})
+    return out
+
+
 def _inside_ratio(body, garment, reach):
+    """服の頂点のうち、近くの肌より 2mm 以上内側にあるものの割合（same: 同じ部位の肌に限る / all: すべて）。
+
+    ガードの姿勢では太い腕が胸に食い込み、胴の部分の服が腕の肌の内側に入る。腕は服の手前にあるので
+    見た目は壊れない（裸の体同士でも起きる接触）。合否は同じ部位の肌との干渉（same）で判定する。"""
     deps = bpy.context.evaluated_depsgraph_get()
     bvh = BVHTree.FromObject(body, deps)
+    bev = body.evaluated_get(deps)
+    bmesh_ = bev.to_mesh()
+    body_regions = dominant_regions(body, bmesh_)
+    face_vert = [p.vertices[0] for p in bmesh_.polygons]
+    bev.to_mesh_clear()
+    garment_regions = dominant_regions(garment, garment.data)
     coords, _ = evaluated_coords(garment)
-    inside = 0
-    for c in coords:
-        loc, normal, _, dist = bvh.find_nearest(c, reach)
+    same, any_ = 0, 0
+    for i, c in enumerate(coords):
+        loc, normal, face, dist = bvh.find_nearest(c, reach)
         if loc is not None and (c - loc).dot(normal) < -0.002:
-            inside += 1
-    return round(inside / max(1, len(coords)), 5)
+            any_ += 1
+            if body_regions[face_vert[face]] & garment_regions[i]:
+                same += 1
+    n = max(1, len(coords))
+    return round(same / n, 5), round(any_ / n, 5)
 
 
 def penetration(body, garment):
     """服と体の干渉。
 
-    visible: 見えている（Delete で消していない）肌から 1.5cm 以内の服の頂点のうち、肌より 2mm 以上
-             内側にあるものの割合。これが大きいと、服の上に肌が突き出して見える（合否判定に使う）。
-    under:   服の下で消している肌も含めた体に対する同じ割合（参考値。布が肌に食い込んでいる量）。
+    visible:     見えている（Delete で消していない）肌から 1.5cm 以内の服の頂点のうち、同じ部位の肌より
+                 2mm 以上内側にあるものの割合。これが大きいと、服の上に肌が突き出して見える（合否判定に使う）。
+    visible_all: 部位を区別しない同じ割合（腕と胸の接触なども含む。参考値）。
+    under:       服の下で消している肌も含めた体に対する割合（参考値。布が肌に食い込んでいる量）。
     """
-    visible = _inside_ratio(body, garment, 0.015)
+    visible, visible_all = _inside_ratio(body, garment, 0.015)
     masks = [m for m in body.modifiers if m.type == "MASK" and m.name.startswith("Delete")]
     for m in masks:
         m.show_viewport = False
-    under = _inside_ratio(body, garment, 0.03)
+    _, under = _inside_ratio(body, garment, 0.03)
     for m in masks:
         m.show_viewport = True
-    return {"visible": visible, "under": under}
+    return {"visible": visible, "visible_all": visible_all, "under": under}
 
 
 def eye_drift(rig, eyes, rest_offset):
