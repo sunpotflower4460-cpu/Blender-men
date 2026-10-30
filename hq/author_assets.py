@@ -62,11 +62,12 @@ def ensure_uv(obj):
     bpy.ops.object.mode_set(mode="OBJECT")
 
 
-def covered_body_verts(ref, garment, max_dist=0.05, erode=1):
+def covered_body_verts(ref, garment, max_dist=0.05, erode=1, inside=False):
     """服の下に隠れる体の頂点（評価後メッシュの番号）。法線方向へ光線を飛ばし、肌と同じ向きの服の面に
     当たるものを選び、縁から erode 輪ぶん内側だけを残す（縁の近くは隠すと隙間が見えるため）。
 
-    向きの条件がないと、腕の内側の肌から出た光線が胴体側の服に当たり、見えている肌まで隠してしまう。"""
+    向きの条件がないと、腕の内側の肌から出た光線が胴体側の服に当たり、見えている肌まで隠してしまう。
+    inside=True（閉じた殻の靴）では、殻の内側か表面から 2 mm 以内にある頂点も隠す（底の縁が肌に食い込むため）。"""
     from mathutils.bvhtree import BVHTree
     deps = bpy.context.evaluated_depsgraph_get()
     gbvh = BVHTree.FromObject(garment, deps)
@@ -76,6 +77,10 @@ def covered_body_verts(ref, garment, max_dist=0.05, erode=1):
         loc, normal, _, dist = gbvh.ray_cast(v.co + v.normal * 0.0005, v.normal, max_dist)
         if loc is not None and abs(normal.dot(v.normal)) > 0.5:
             hit.add(v.index)
+        elif inside:
+            loc, normal, _, _ = gbvh.find_nearest(v.co, 0.03)
+            if loc is not None and (v.co - loc).dot(normal) < 0.002:
+                hit.add(v.index)
     neighbours = {v.index: set() for v in mesh.vertices}
     for e in mesh.edges:
         a, b = e.vertices
@@ -186,7 +191,8 @@ def main():
         baked = bake.bake_object(obj, out, "fabric", size=args.texture_size, normal=True)
         bake_time = time.time() - t1
         # 靴は足の凸包から作るのでつま先で足から離れる。届く距離を広げる
-        covered = covered_body_verts(ref, obj, max_dist=spec.get("cover_reach", 0.05))
+        covered = covered_body_verts(ref, obj, max_dist=spec.get("cover_reach", 0.05),
+                                 inside=spec.get("cover_inside", False))
         delete_verts = [eval_map[i] for i in covered]
         path, match_time = write_mhclo(human, obj, "clothes", name, out, f"{name} ({spec['fabric']})",
                                        delete_verts=delete_verts)

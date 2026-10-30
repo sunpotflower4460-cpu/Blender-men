@@ -220,7 +220,7 @@ GARMENTS = {
               "color": (0.055, 0.085, 0.17), "fabric": "denim", "thickness": 0.0035, "roughness": 0.8},
     "sneakers": {"region": region_shoes, "ease": lambda r, c, b: 0.0075, "pin": None, "sim_frames": 0,
                  "color": (0.78, 0.78, 0.76), "fabric": "leather", "thickness": 0.004, "roughness": 0.55,
-                 "sole": {"color": (0.92, 0.92, 0.9), "height": 0.012}, "cover_reach": 0.08},
+                 "sole": {"color": (0.92, 0.92, 0.9), "height": 0.012}, "cover_reach": 0.08, "cover_inside": True},
     "dress_shirt": {"region": region_dress_shirt, "ease": ease_dress_shirt, "pin": pin_shirt, "sim_frames": 10,
                     "color": (0.62, 0.71, 0.84), "fabric": "cotton", "thickness": 0.002, "roughness": 0.7,
                     "collar": True},
@@ -228,7 +228,7 @@ GARMENTS = {
                "color": (0.07, 0.07, 0.08), "fabric": "wool", "thickness": 0.003, "roughness": 0.75},
     "dress_shoes": {"region": region_shoes, "ease": lambda r, c, b: 0.006, "pin": None, "sim_frames": 0,
                     "color": (0.07, 0.04, 0.025), "fabric": "leather", "thickness": 0.004, "roughness": 0.3,
-                    "sole": {"color": (0.03, 0.025, 0.02), "height": 0.010}, "cover_reach": 0.08},
+                    "sole": {"color": (0.03, 0.025, 0.02), "height": 0.010}, "cover_reach": 0.08, "cover_inside": True},
 }
 
 OUTFITS = {
