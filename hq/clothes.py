@@ -90,7 +90,9 @@ def _side(name):
 def region_tshirt(ref, co, bone):
     neck_h, _ = ref.bones["neck_01"]
     pelvis_h, _ = ref.bones["pelvis"]
-    if bone in ("head", "neck_01") or bone.startswith(("hand", "lowerarm", "calf")):
+    if bone == "head" or bone.startswith(("hand", "lowerarm", "calf")):
+        return False
+    if bone == "neck_01" and co.z > neck_h.z - 0.02:  # 首の付け根より下は含める（後ろ首が欠けないように）
         return False
     if bone.startswith("upperarm"):
         return ref.along(co, bone) < 0.62
@@ -108,8 +110,9 @@ def region_tshirt(ref, co, bone):
 def region_dress_shirt(ref, co, bone):
     neck_h, _ = ref.bones["neck_01"]
     pelvis_h, _ = ref.bones["pelvis"]
-    if bone in ("head", "neck_01") or bone.startswith(("hand", "calf", "index", "middle", "ring",
-                                                          "pinky", "thumb")):
+    if bone == "head" or bone.startswith(("hand", "calf", "index", "middle", "ring", "pinky", "thumb")):
+        return False
+    if bone == "neck_01" and co.z > neck_h.z - 0.02:
         return False
     if bone.startswith("lowerarm"):
         return ref.along(co, bone) < 1.0
@@ -370,7 +373,7 @@ def clean(bm, min_faces=40, merge=True):
         bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
 
 
-def round_neckline(bm, ref, radius, depth_front=0.0):
+def round_neckline(bm, ref, radius, depth_front=0.0, drop=0.03):
     """首回りの縁を、首の軸を中心にした楕円へ寄せる（前は少し下げる）。"""
     neck_h, _ = ref.bones["neck_01"]
     for v in bm.verts:
@@ -384,13 +387,14 @@ def round_neckline(bm, ref, radius, depth_front=0.0):
         target = d.normalized() * r
         v.co.x = neck_h.x + target.x
         v.co.y = neck_h.y + target.y
-        v.co.z = min(v.co.z, neck_h.z - 0.03 - depth_front * front)
+        v.co.z = min(v.co.z, neck_h.z - drop - depth_front * front)
 
 
 TRIMS = {
     # 服ごとの切り落とし: [("hem", 高さ基準の骨, オフセット)] など
     "tshirt": {"hem": ("pelvis", -0.07), "sleeve": 0.48, "neck": 0.078},
-    "dress_shirt": {"hem": ("pelvis", -0.10), "sleeve": 1.93, "neck": 0.068},
+    "dress_shirt": {"hem": ("pelvis", -0.10), "sleeve": 1.93, "neck": 0.068, "neck_drop": 0.01,
+                    "neck_front": 0.0},
     "jeans": {"waist": ("pelvis", 0.085), "ankle": 0.035},
     "slacks": {"waist": ("pelvis", 0.09), "ankle": 0.03},
 }
@@ -431,7 +435,8 @@ def apply_trims(bm, ref, name, merge=True):
         foot_h, _ = ref.bones["foot_l"]
         cut(bm, Vector((0, 0, foot_h.z + trim["ankle"])), Vector((0, 0, -1)))
     if "neck" in trim:
-        round_neckline(bm, ref, trim["neck"], depth_front=0.02)
+        round_neckline(bm, ref, trim["neck"], depth_front=trim.get("neck_front", 0.02),
+                       drop=trim.get("neck_drop", 0.03))
         smooth_boundary(bm, ref)
     clean(bm, merge=merge)
 
@@ -527,7 +532,10 @@ def add_collar(bm, ref, height=0.032, fold=0.042):
     for v in up:
         radial = Vector((v.co.x - neck_h.x, v.co.y - neck_h.y, 0)).normalized()
         v.co += Vector((0, 0, height)) - radial * 0.004
-    top_edges = [e for e in ret["geom"] if isinstance(e, bmesh.types.BMEdge)]
+    # 2 段目は 1 段目の上端の辺だけを押し出す（縦の辺まで押し出すと破片状になる）
+    up_set = set(up)
+    top_edges = [e for e in ret["geom"] if isinstance(e, bmesh.types.BMEdge)
+                 and all(v in up_set for v in e.verts)]
     ret2 = bmesh.ops.extrude_edge_only(bm, edges=top_edges)
     down = [v for v in ret2["geom"] if isinstance(v, bmesh.types.BMVert)]
     for v in down:
@@ -689,8 +697,6 @@ def make_garment(ref, body, rig, name):
         bmesh.ops.subdivide_edges(bm, edges=list(bm.edges), cuts=1, use_grid_fill=True, smooth=0.0)
         apply_trims(bm, ref, name)
         offset_and_settle(bm, ref, spec["ease"])
-    if spec.get("collar"):
-        add_collar(bm, ref)
     mesh = bpy.data.meshes.new(f"BH_{name}")
     bm.to_mesh(mesh)
     bm.free()
@@ -708,6 +714,9 @@ def make_garment(ref, body, rig, name):
         bm = bmesh.new()
         bm.from_mesh(obj.data)
         apply_trims(bm, ref, name, merge=False)
+        if spec.get("collar"):
+            # 襟は布シミュレーションの後、整えた首の縁から作る（先に作ると布の動きで崩れる）
+            add_collar(bm, ref)
         bm.to_mesh(obj.data)
         bm.free()
     obj["bh_boundary_loops"] = boundary_loops(obj.data)
