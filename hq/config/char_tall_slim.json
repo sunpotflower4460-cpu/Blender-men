@@ -1,0 +1,34 @@
+{
+  "name": "char_tall_slim",
+  "description": "長身で細身の体型（高身長・細身・長髪・普段着）",
+  "macros": {
+    "gender": 1.0,
+    "age": 0.45,
+    "muscle": 0.4,
+    "weight": 0.22,
+    "height": 0.92,
+    "proportions": 0.75,
+    "asian": 0.65,
+    "caucasian": 0.3,
+    "african": 0.05
+  },
+  "targets": {},
+  "rig": "game_engine",
+  "skin": {
+    "color": [
+      0.55,
+      0.36,
+      0.25
+    ],
+    "roughness": 0.42
+  },
+  "eyes": {
+    "iris_color": [
+      0.1,
+      0.055,
+      0.03
+    ]
+  },
+  "hair": "long",
+  "outfit": "casual"
+}

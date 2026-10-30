@@ -1,0 +1,34 @@
+{
+  "name": "char_standard",
+  "description": "標準体型（マスターに近い体型・短髪・普段着）",
+  "macros": {
+    "gender": 1.0,
+    "age": 0.5,
+    "muscle": 0.5,
+    "weight": 0.5,
+    "height": 0.52,
+    "proportions": 0.55,
+    "asian": 0.75,
+    "caucasian": 0.2,
+    "african": 0.05
+  },
+  "targets": {},
+  "rig": "game_engine",
+  "skin": {
+    "color": [
+      0.52,
+      0.33,
+      0.22
+    ],
+    "roughness": 0.42
+  },
+  "eyes": {
+    "iris_color": [
+      0.1,
+      0.055,
+      0.03
+    ]
+  },
+  "hair": "crew",
+  "outfit": "casual"
+}
