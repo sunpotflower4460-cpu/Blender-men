@@ -201,9 +201,13 @@ def grow_strand(style, head, root, rng):
     step = length / segs
     pts = [loc + normal * style["offset"]]
     direction = (flow_direction(style, head, loc, normal) * (1 - style["lift"]) + normal * style["lift"]).normalized()
+    short = "max_offset" in style
     for k in range(1, segs + 1):
         p = pts[-1] + direction * step
         q, n = head.nearest(p)
+        if short and k > 1 and (head.is_ear(q) or q.z < head.hairline_z(head.azimuth(q)) - 0.012):
+            # 短い髪は耳の周りで刈り揃える。耳の上へ伸ばすと、耳の表面から押し出されて横へ跳ねる
+            break
         flow = flow_direction(style, head, q, n)
         g = style["gravity"] * (k / segs)
         direction = (flow * (1 - g) + Vector((0, 0, -1)) * g + direction * 0.5).normalized()
@@ -299,30 +303,58 @@ def assign_weights(obj, head):
                 groups[name].add([v.index], w, "REPLACE")
 
 
-def scalp_ink(head, body, image_size, color, path):
-    """髪の生える範囲（頭皮）を髪色で塗った RGBA 画像（UV 空間）を作る。生え際はぼかす。"""
+def scalp_ink(head, body, image_size, color, path, fade=(-0.003, 0.007)):
+    """髪の生える範囲（頭皮）を髪色で塗った RGBA 画像（UV 空間）を作る。
+
+    面単位で塗ると生え際が面の形（約 1 cm の段）になるので、頂点ごとの「生え際からの高さ」を
+    三角形の中で補間し、fade [m] の幅で滑らかに薄くする。"""
+    import numpy as np
     from face_details import SurfaceUV
-    from PIL import ImageFilter
     surf = SurfaceUV(body)
-    scale = 2
-    img = Image.new("RGBA", (image_size * scale, image_size * scale), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
     mesh = surf.mesh
-    rgb = tuple(int(255 * c ** (1 / 2.2)) for c in color)
+    mesh.calc_loop_triangles()
     head_set = set(head.head_ids)
-    for poly in mesh.polygons:
-        if not all(v in head_set for v in poly.vertices):
+    height = {}
+    for i in head_set:
+        co = mesh.vertices[i].co
+        height[i] = -0.05 if head.is_ear(co) else co.z - head.hairline_z(head.azimuth(co))
+    value = np.full((image_size, image_size), -1.0, dtype=np.float32)
+    for tri in mesh.loop_triangles:
+        if not all(v in head_set for v in tri.vertices):
             continue
-        c = sum((mesh.vertices[v].co for v in poly.vertices), Vector()) / len(poly.vertices)
-        if not head.is_scalp(c):
+        hs = np.array([height[v] for v in tri.vertices], dtype=np.float32)
+        if hs.max() < fade[0]:
             continue
-        pts = [(surf.uv[li].uv.x * image_size * scale, (1 - surf.uv[li].uv.y) * image_size * scale)
-               for li in poly.loop_indices]
-        draw.polygon(pts, fill=(*rgb, 235))
+        uv = np.array([(surf.uv[li].uv.x * image_size, (1 - surf.uv[li].uv.y) * image_size)
+                       for li in tri.loops], dtype=np.float64)
+        x0, y0 = np.floor(uv.min(axis=0)).astype(int) - 1
+        x1, y1 = np.ceil(uv.max(axis=0)).astype(int) + 1
+        x0, y0 = max(x0, 0), max(y0, 0)
+        x1, y1 = min(x1, image_size - 1), min(y1, image_size - 1)
+        if x1 < x0 or y1 < y0:
+            continue
+        xs, ys = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
+        (ax, ay), (bx, by), (cx, cy) = uv
+        den = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+        if abs(den) < 1e-12:
+            continue
+        w0 = ((by - cy) * (xs - cx) + (cx - bx) * (ys - cy)) / den
+        w1 = ((cy - ay) * (xs - cx) + (ax - cx) * (ys - cy)) / den
+        w2 = 1 - w0 - w1
+        # 縁の画素も塗る（UV の継ぎ目に隙間を作らない）
+        inside = (w0 > -0.02) & (w1 > -0.02) & (w2 > -0.02)
+        val = w0 * hs[0] + w1 * hs[1] + w2 * hs[2]
+        block = value[y0:y1 + 1, x0:x1 + 1]
+        block[inside] = np.maximum(block[inside], val[inside])
     surf.free()
-    img = img.filter(ImageFilter.GaussianBlur(radius=3 * scale))
-    img = img.resize((image_size, image_size), Image.LANCZOS)
-    img.save(path)
+    t = np.clip((value - fade[0]) / (fade[1] - fade[0]), 0.0, 1.0)
+    alpha = (t * t * (3 - 2 * t) * 235).astype(np.uint8)
+    rgb = [int(255 * c ** (1 / 2.2)) for c in color]
+    data = np.zeros((image_size, image_size, 4), dtype=np.uint8)
+    data[..., 0], data[..., 1], data[..., 2] = rgb
+    data[..., 3] = alpha
+    # 色は画像全体に入れておく（アルファの縁で補間しても黒くならない）
+    Image.fromarray(data, "RGBA").save(path)
     return path
 
 

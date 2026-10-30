@@ -377,21 +377,77 @@ def clean(bm, min_faces=40, merge=True):
         bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
 
 
-def round_neckline(bm, ref, radius, depth_front=0.0, drop=0.03):
-    """首回りの縁を、首の軸を中心にした楕円へ寄せる（前は少し下げる）。"""
+def mesh_islands(bm):
+    """面のつながりごとの集合（大きい順）。"""
+    seen, out = set(), []
+    for f in bm.faces:
+        if f in seen:
+            continue
+        stack, island = [f], set()
+        seen.add(f)
+        while stack:
+            g = stack.pop()
+            island.add(g)
+            for e in g.edges:
+                for h in e.link_faces:
+                    if h not in seen:
+                        seen.add(h)
+                        stack.append(h)
+        out.append(island)
+    return sorted(out, key=len, reverse=True)
+
+
+def round_neckline(bm, ref, radius, depth_front=0.0, drop=0.03, rings=5):
+    """首回りの縁を、首の軸を中心にした楕円と滑らかな高さの曲線へ寄せる（前は少し下げる）。
+
+    縁の頂点だけを動かすと、隣の列との間に細い三角形が折れ重なって破片状に見える。
+    縁の移動量を rings 列内側まで、離れるほど小さくして伝える。"""
     neck_h, _ = ref.bones["neck_01"]
+
+    def target(co):
+        d = Vector((co.x - neck_h.x, co.y - neck_h.y, 0))
+        front = max(0.0, -d.normalized().y)
+        t = d.normalized() * radius * (1.0 + 0.15 * front)
+        return Vector((neck_h.x + t.x, neck_h.y + t.y, neck_h.z - drop - depth_front * front))
+
+    # 布シミュレーションで首の近くへ寄った布（線より上に立ち上がった耳状の部分）は切り落とす
+    above = set()
+    for v in bm.verts:
+        d = Vector((v.co.x - neck_h.x, v.co.y - neck_h.y, 0))
+        if v.co.z > neck_h.z - 0.12 and d.length < 0.16:
+            t = target(v.co)
+            if v.co.z > t.z + 0.002 and d.length < (t - neck_h).to_2d().length + 0.015:
+                above.add(v)
+    if above:
+        bmesh.ops.delete(bm, geom=list({f for v in above for f in v.link_faces}), context="FACES")
+        loose = [v for v in bm.verts if not v.link_faces]
+        bmesh.ops.delete(bm, geom=loose, context="VERTS")
+        islands = mesh_islands(bm)
+        for island in islands[1:]:
+            if len(island) < 50:
+                bmesh.ops.delete(bm, geom=list(island), context="FACES")
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+    delta = {}
     for v in bm.verts:
         if not v.is_boundary:
             continue
         d = Vector((v.co.x - neck_h.x, v.co.y - neck_h.y, 0))
         if v.co.z < neck_h.z - 0.12 or d.length > 0.16:
             continue
-        front = max(0.0, -d.normalized().y)
-        r = radius * (1.0 + 0.15 * front)
-        target = d.normalized() * r
-        v.co.x = neck_h.x + target.x
-        v.co.y = neck_h.y + target.y
-        v.co.z = min(v.co.z, neck_h.z - drop - depth_front * front)
+        delta[v] = target(v.co) - v.co
+    frontier = list(delta)
+    for ring in range(1, rings + 1):
+        weight = 1.0 - ring / (rings + 1)
+        nxt = {}
+        for v in frontier:
+            for e in v.link_edges:
+                o = e.other_vert(v)
+                if o not in delta and o not in nxt:
+                    nxt[o] = delta[v] * weight / (1.0 - (ring - 1) / (rings + 1))
+        delta.update(nxt)
+        frontier = list(nxt)
+    for v, dv in delta.items():
+        v.co += dv
 
 
 TRIMS = {
