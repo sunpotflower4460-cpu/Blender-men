@@ -1,0 +1,36 @@
+{
+  "name": "char_tall_slim_swap",
+  "config": "hq/config/swaps/char_tall_slim_swap.json",
+  "stages": {
+    "build": {
+      "ok": true,
+      "seconds": 28.7,
+      "input_hash": "95c4b95cd230c555",
+      "finished": "2026-10-30T17:52:51",
+      "cached": true
+    },
+    "checks": {
+      "ok": true,
+      "seconds": 1.8,
+      "input_hash": "fa5b423e4452ab3a",
+      "finished": "2026-10-30T17:52:53",
+      "cached": true
+    },
+    "render": {
+      "ok": true,
+      "seconds": 57.4,
+      "input_hash": "7764ca4d9d05bdea",
+      "finished": "2026-10-30T17:53:50",
+      "cached": true
+    },
+    "validate": {
+      "ok": true,
+      "seconds": 20.3,
+      "input_hash": "ae3ec7f5db41fb6e",
+      "finished": "2026-10-30T17:58:57",
+      "cached": true
+    }
+  },
+  "passed": true,
+  "total_seconds": 108.2
+}

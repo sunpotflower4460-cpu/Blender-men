@@ -1,9 +1,9 @@
 {
-  "blend": "/tmp/claude-0/-home-user-Blender-men/5f7f36a2-f2da-5203-b4a8-32065810d610/scratchpad/hq/gen/char_standard/char_standard.blend",
+  "blend": "hq/output/char_standard/char_standard.blend",
   "skeleton": {
     "bones": 53,
     "deform": 53,
-    "height_m": 1.67
+    "height_m": 1.676
   },
   "meshes": {
     "BH_body": {
@@ -102,7 +102,7 @@
       "exportable_material": true
     },
     "BH_clothes_tshirt": {
-      "vertices": 13772,
+      "vertices": 13624,
       "unweighted": 0,
       "over_4": 0,
       "bad_sum": 0,
@@ -145,7 +145,7 @@
       "exportable_material": true
     },
     "BH_hair_crew": {
-      "vertices": 41600,
+      "vertices": 41192,
       "unweighted": 0,
       "over_4": 0,
       "bad_sum": 0,
@@ -167,12 +167,18 @@
     },
     "sneakers": {
       "hidden_body_mask": true,
-      "skin_pokes_through_ratio": 0.0105
+      "skin_pokes_through_ratio": 0.0001
     },
     "tshirt": {
       "hidden_body_mask": true,
-      "skin_pokes_through_ratio": 0.0029
+      "skin_pokes_through_ratio": 0.0071
     }
+  },
+  "hidden_skin": {
+    "hidden_vertices": 4413,
+    "exposed": 0,
+    "exposed_ratio": 0.0,
+    "exposed_samples": []
   },
   "failures": [],
   "passed": true

@@ -1,9 +1,9 @@
 {
-  "blend": "/tmp/claude-0/-home-user-Blender-men/5f7f36a2-f2da-5203-b4a8-32065810d610/scratchpad/hq/gen/char_tall_slim/char_tall_slim.blend",
-  "glb": "/tmp/claude-0/-home-user-Blender-men/5f7f36a2-f2da-5203-b4a8-32065810d610/scratchpad/hq/gen/char_tall_slim/char_tall_slim.glb",
+  "blend": "hq/output/char_tall_slim/char_tall_slim.blend",
+  "glb": "hq/output/char_tall_slim/char_tall_slim.glb",
   "poses": {
     "rest": {
-      "edges": 18322,
+      "edges": 17788,
       "bad_edges": 0,
       "bad_ratio": 0.0,
       "max_stretch": 1.0,
@@ -12,87 +12,99 @@
       "penetration": {
         "BH_clothes_jeans": {
           "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.0
         },
         "BH_clothes_sneakers": {
-          "visible": 0.00822,
+          "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.06038
         },
         "BH_clothes_tshirt": {
-          "visible": 0.00247,
-          "under": 0.00421
+          "visible": 0.00675,
+          "visible_all": 0.00675,
+          "under": 0.00954
         }
       }
     },
     "punch": {
-      "edges": 18322,
+      "edges": 17788,
       "bad_edges": 13,
-      "bad_ratio": 0.00071,
+      "bad_ratio": 0.00073,
       "max_stretch": 3.51,
       "min_shrink": 0.141,
       "eye_drift_m": 0.0,
       "penetration": {
         "BH_clothes_jeans": {
           "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.0
         },
         "BH_clothes_sneakers": {
-          "visible": 0.0085,
+          "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.06038
         },
         "BH_clothes_tshirt": {
-          "visible": 0.01133,
-          "under": 0.01285
+          "visible": 0.00734,
+          "visible_all": 0.01248,
+          "under": 0.01563
         }
       }
     },
     "kick": {
-      "edges": 18322,
-      "bad_edges": 31,
-      "bad_ratio": 0.00169,
+      "edges": 17788,
+      "bad_edges": 29,
+      "bad_ratio": 0.00163,
       "max_stretch": 7.189,
       "min_shrink": 0.091,
       "eye_drift_m": 0.0,
       "penetration": {
         "BH_clothes_jeans": {
-          "visible": 0.00407,
-          "under": 0.01726
+          "visible": 0.00699,
+          "visible_all": 0.01248,
+          "under": 0.02815
         },
         "BH_clothes_sneakers": {
-          "visible": 0.0085,
-          "under": 0.06031
+          "visible": 0.0,
+          "visible_all": 0.0,
+          "under": 0.06086
         },
         "BH_clothes_tshirt": {
-          "visible": 0.00363,
-          "under": 0.01786
+          "visible": 0.00697,
+          "visible_all": 0.00697,
+          "under": 0.0229
         }
       }
     },
     "crouch": {
-      "edges": 18322,
+      "edges": 17788,
       "bad_edges": 25,
-      "bad_ratio": 0.00136,
+      "bad_ratio": 0.00141,
       "max_stretch": 5.193,
       "min_shrink": 0.121,
       "eye_drift_m": 0.0,
       "penetration": {
         "BH_clothes_jeans": {
-          "visible": 9e-05,
-          "under": 0.00726
+          "visible": 0.0,
+          "visible_all": 0.0,
+          "under": 0.00301
         },
         "BH_clothes_sneakers": {
-          "visible": 0.00822,
-          "under": 0.06031
+          "visible": 0.0,
+          "visible_all": 0.0,
+          "under": 0.06024
         },
         "BH_clothes_tshirt": {
-          "visible": 0.00247,
-          "under": 0.00421
+          "visible": 0.00712,
+          "visible_all": 0.00712,
+          "under": 0.01028
         }
       }
     }
   },
   "glb_check": {
-    "size_bytes": 8996000,
+    "size_bytes": 9461116,
     "bones": 53,
     "meshes": [
       "BH_body",
@@ -107,8 +119,8 @@
     "vertex_error": {
       "BH_body": {
         "rest_map_err_m": 1e-06,
-        "vertices_glb": 10061,
-        "vertices_blender": 9265,
+        "vertices_glb": 9739,
+        "vertices_blender": 8967,
         "rest": {
           "max_m": 1e-06,
           "p99_m": 1e-06,
@@ -140,19 +152,19 @@
           "mean_m": 0.0
         },
         "punch": {
-          "max_m": 0.0,
-          "p99_m": 0.0,
-          "mean_m": 0.0
+          "max_m": 3.2e-05,
+          "p99_m": 9e-06,
+          "mean_m": 1e-06
         },
         "kick": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
-          "mean_m": 0.0
+          "max_m": 9e-05,
+          "p99_m": 2.8e-05,
+          "mean_m": 1e-06
         },
         "crouch": {
-          "max_m": 0.0,
-          "p99_m": 0.0,
-          "mean_m": 0.0
+          "max_m": 3.7e-05,
+          "p99_m": 2e-05,
+          "mean_m": 1e-06
         }
       },
       "BH_clothes_sneakers": {
@@ -165,43 +177,43 @@
           "mean_m": 0.0
         },
         "punch": {
-          "max_m": 1e-06,
-          "p99_m": 0.0,
-          "mean_m": 0.0
-        },
-        "kick": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
+          "max_m": 5.5e-05,
+          "p99_m": 8e-06,
           "mean_m": 1e-06
         },
+        "kick": {
+          "max_m": 0.000167,
+          "p99_m": 2.8e-05,
+          "mean_m": 2e-06
+        },
         "crouch": {
-          "max_m": 0.0,
-          "p99_m": 0.0,
-          "mean_m": 0.0
+          "max_m": 2e-05,
+          "p99_m": 1.1e-05,
+          "mean_m": 1e-06
         }
       },
       "BH_clothes_tshirt": {
         "rest_map_err_m": 1e-06,
-        "vertices_glb": 14512,
-        "vertices_blender": 13772,
+        "vertices_glb": 14416,
+        "vertices_blender": 13624,
         "rest": {
           "max_m": 1e-06,
           "p99_m": 1e-06,
           "mean_m": 0.0
         },
         "punch": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
+          "max_m": 2.6e-05,
+          "p99_m": 7e-06,
           "mean_m": 0.0
         },
         "kick": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
+          "max_m": 2.5e-05,
+          "p99_m": 5e-06,
           "mean_m": 0.0
         },
         "crouch": {
-          "max_m": 1e-06,
-          "p99_m": 0.0,
+          "max_m": 2.7e-05,
+          "p99_m": 7e-06,
           "mean_m": 0.0
         }
       },

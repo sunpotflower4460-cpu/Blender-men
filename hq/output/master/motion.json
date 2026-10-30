@@ -1,9 +1,9 @@
 {
-  "blend": "/tmp/claude-0/-home-user-Blender-men/5f7f36a2-f2da-5203-b4a8-32065810d610/scratchpad/hq/master5/master.blend",
-  "glb": "/tmp/claude-0/-home-user-Blender-men/5f7f36a2-f2da-5203-b4a8-32065810d610/scratchpad/hq/master5/master.glb",
+  "blend": "hq/output/master/master.blend",
+  "glb": "hq/output/master/master.glb",
   "poses": {
     "rest": {
-      "edges": 18322,
+      "edges": 17788,
       "bad_edges": 0,
       "bad_ratio": 0.0,
       "max_stretch": 1.0,
@@ -12,87 +12,99 @@
       "penetration": {
         "BH_clothes_jeans": {
           "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.0
         },
         "BH_clothes_sneakers": {
-          "visible": 0.01036,
+          "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.0572
         },
         "BH_clothes_tshirt": {
-          "visible": 0.0029,
-          "under": 0.00407
+          "visible": 0.00719,
+          "visible_all": 0.00719,
+          "under": 0.0094
         }
       }
     },
     "punch": {
-      "edges": 18322,
+      "edges": 17788,
       "bad_edges": 15,
-      "bad_ratio": 0.00082,
+      "bad_ratio": 0.00084,
       "max_stretch": 3.607,
       "min_shrink": 0.121,
       "eye_drift_m": 0.0,
       "penetration": {
         "BH_clothes_jeans": {
           "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.0
         },
         "BH_clothes_sneakers": {
-          "visible": 0.01078,
+          "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.05713
         },
         "BH_clothes_tshirt": {
-          "visible": 0.01743,
-          "under": 0.01917
+          "visible": 0.00785,
+          "visible_all": 0.01622,
+          "under": 0.02209
         }
       }
     },
     "kick": {
-      "edges": 18322,
-      "bad_edges": 34,
-      "bad_ratio": 0.00186,
+      "edges": 17788,
+      "bad_edges": 32,
+      "bad_ratio": 0.0018,
       "max_stretch": 6.773,
       "min_shrink": 0.099,
       "eye_drift_m": 0.0,
       "penetration": {
         "BH_clothes_jeans": {
-          "visible": 0.00398,
-          "under": 0.01877
+          "visible": 0.00487,
+          "visible_all": 0.01045,
+          "under": 0.02709
         },
         "BH_clothes_sneakers": {
-          "visible": 0.01133,
+          "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.05713
         },
         "BH_clothes_tshirt": {
-          "visible": 0.00915,
-          "under": 0.02374
+          "visible": 0.00705,
+          "visible_all": 0.00719,
+          "under": 0.02371
         }
       }
     },
     "crouch": {
-      "edges": 18322,
+      "edges": 17788,
       "bad_edges": 24,
-      "bad_ratio": 0.00131,
+      "bad_ratio": 0.00135,
       "max_stretch": 4.911,
       "min_shrink": 0.099,
       "eye_drift_m": 0.0,
       "penetration": {
         "BH_clothes_jeans": {
-          "visible": 0.00018,
-          "under": 0.01328
+          "visible": 0.0,
+          "visible_all": 0.0,
+          "under": 0.01151
         },
         "BH_clothes_sneakers": {
-          "visible": 0.01064,
-          "under": 0.05727
+          "visible": 0.0,
+          "visible_all": 0.0,
+          "under": 0.05734
         },
         "BH_clothes_tshirt": {
-          "visible": 0.00305,
-          "under": 0.00421
+          "visible": 0.00749,
+          "visible_all": 0.00749,
+          "under": 0.01006
         }
       }
     }
   },
   "glb_check": {
-    "size_bytes": 7879608,
+    "size_bytes": 8245208,
     "bones": 53,
     "meshes": [
       "BH_body",
@@ -107,8 +119,8 @@
     "vertex_error": {
       "BH_body": {
         "rest_map_err_m": 1e-06,
-        "vertices_glb": 10061,
-        "vertices_blender": 9265,
+        "vertices_glb": 9739,
+        "vertices_blender": 8967,
         "rest": {
           "max_m": 1e-06,
           "p99_m": 1e-06,
@@ -120,9 +132,9 @@
           "mean_m": 1e-06
         },
         "kick": {
-          "max_m": 4e-06,
+          "max_m": 3e-06,
           "p99_m": 3e-06,
-          "mean_m": 1e-06
+          "mean_m": 0.0
         },
         "crouch": {
           "max_m": 2e-06,
@@ -140,18 +152,18 @@
           "mean_m": 0.0
         },
         "punch": {
-          "max_m": 2e-06,
-          "p99_m": 2e-06,
-          "mean_m": 0.0
-        },
-        "kick": {
-          "max_m": 3e-06,
-          "p99_m": 3e-06,
+          "max_m": 2.6e-05,
+          "p99_m": 8e-06,
           "mean_m": 1e-06
         },
+        "kick": {
+          "max_m": 7.2e-05,
+          "p99_m": 2.4e-05,
+          "mean_m": 2e-06
+        },
         "crouch": {
-          "max_m": 2e-06,
-          "p99_m": 2e-06,
+          "max_m": 2.8e-05,
+          "p99_m": 1.6e-05,
           "mean_m": 1e-06
         }
       },
@@ -165,44 +177,44 @@
           "mean_m": 1e-06
         },
         "punch": {
-          "max_m": 2e-06,
-          "p99_m": 2e-06,
-          "mean_m": 1e-06
-        },
-        "kick": {
-          "max_m": 4e-06,
-          "p99_m": 4e-06,
+          "max_m": 4.8e-05,
+          "p99_m": 8e-06,
           "mean_m": 2e-06
         },
+        "kick": {
+          "max_m": 0.00014,
+          "p99_m": 2.5e-05,
+          "mean_m": 3e-06
+        },
         "crouch": {
-          "max_m": 2e-06,
-          "p99_m": 2e-06,
-          "mean_m": 1e-06
+          "max_m": 1.9e-05,
+          "p99_m": 1.1e-05,
+          "mean_m": 2e-06
         }
       },
       "BH_clothes_tshirt": {
         "rest_map_err_m": 1e-06,
-        "vertices_glb": 14512,
-        "vertices_blender": 13772,
+        "vertices_glb": 14416,
+        "vertices_blender": 13624,
         "rest": {
           "max_m": 1e-06,
           "p99_m": 1e-06,
           "mean_m": 0.0
         },
         "punch": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
-          "mean_m": 0.0
+          "max_m": 2.3e-05,
+          "p99_m": 6e-06,
+          "mean_m": 1e-06
         },
         "kick": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
+          "max_m": 2e-05,
+          "p99_m": 5e-06,
           "mean_m": 0.0
         },
         "crouch": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
-          "mean_m": 0.0
+          "max_m": 2.2e-05,
+          "p99_m": 7e-06,
+          "mean_m": 1e-06
         }
       },
       "BH_eyelashes": {
@@ -257,8 +269,8 @@
       },
       "BH_hair_side_part": {
         "rest_map_err_m": 1e-06,
-        "vertices_glb": 40800,
-        "vertices_blender": 40800,
+        "vertices_glb": 38850,
+        "vertices_blender": 38850,
         "rest": {
           "max_m": 1e-06,
           "p99_m": 1e-06,
@@ -275,7 +287,7 @@
           "mean_m": 0.0
         },
         "crouch": {
-          "max_m": 0.0,
+          "max_m": 1e-06,
           "p99_m": 0.0,
           "mean_m": 0.0
         }

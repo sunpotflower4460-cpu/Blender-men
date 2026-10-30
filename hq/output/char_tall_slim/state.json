@@ -1,26 +1,26 @@
 {
   "build": {
     "ok": true,
-    "seconds": 253.2,
-    "input_hash": "7da13d1ca8c09e49",
-    "finished": "2026-10-30T13:21:24"
+    "seconds": 342.4,
+    "input_hash": "4a689ecde4817ef3",
+    "finished": "2026-10-30T17:44:17"
   },
   "checks": {
     "ok": true,
-    "seconds": 1.7,
-    "input_hash": "a1df3961c30bda2a",
-    "finished": "2026-10-30T13:21:26"
+    "seconds": 2.1,
+    "input_hash": "e6c20f0455c10e7d",
+    "finished": "2026-10-30T17:44:20"
   },
   "render": {
     "ok": true,
-    "seconds": 203.2,
+    "seconds": 169.9,
     "input_hash": "2f28dadbcbc18e32",
-    "finished": "2026-10-30T13:24:49"
+    "finished": "2026-10-30T17:47:09"
   },
   "validate": {
     "ok": true,
-    "seconds": 21.0,
-    "input_hash": "c75325eb766d5b07",
-    "finished": "2026-10-30T13:25:10"
+    "seconds": 20.8,
+    "input_hash": "6652d02c64452613",
+    "finished": "2026-10-30T17:57:54"
   }
 }

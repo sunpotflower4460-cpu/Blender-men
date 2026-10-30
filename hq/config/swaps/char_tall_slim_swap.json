@@ -1,0 +1,37 @@
+{
+  "name": "char_tall_slim_swap",
+  "description": "長身で細身の体型に七三分け・ビジネス服を組み合わせた入れ替え確認用",
+  "macros": {
+    "gender": 1.0,
+    "age": 0.45,
+    "muscle": 0.4,
+    "weight": 0.22,
+    "height": 0.75,
+    "proportions": 0.75,
+    "asian": 0.65,
+    "caucasian": 0.3,
+    "african": 0.05
+  },
+  "targets": {},
+  "rig": "game_engine",
+  "skin": {
+    "color": [
+      0.55,
+      0.36,
+      0.25
+    ],
+    "roughness": 0.42
+  },
+  "eyes": {
+    "iris_color": [
+      0.1,
+      0.055,
+      0.03
+    ]
+  },
+  "hair": "side_part",
+  "outfit": "business",
+  "bake": {
+    "reuse": "out/char_tall_slim/textures/char_tall_slim_body"
+  }
+}

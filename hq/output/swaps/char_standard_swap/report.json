@@ -1,0 +1,36 @@
+{
+  "name": "char_standard_swap",
+  "config": "hq/config/swaps/char_standard_swap.json",
+  "stages": {
+    "build": {
+      "ok": true,
+      "seconds": 30.0,
+      "input_hash": "bda7b06fe039bd2a",
+      "finished": "2026-10-30T17:47:58",
+      "cached": true
+    },
+    "checks": {
+      "ok": true,
+      "seconds": 1.8,
+      "input_hash": "573d8ec4d9d7ce5c",
+      "finished": "2026-10-30T17:48:00",
+      "cached": true
+    },
+    "render": {
+      "ok": true,
+      "seconds": 138.4,
+      "input_hash": "18ac0e46c8704538",
+      "finished": "2026-10-30T17:50:18",
+      "cached": true
+    },
+    "validate": {
+      "ok": true,
+      "seconds": 22.6,
+      "input_hash": "593b5014d7c4f8a1",
+      "finished": "2026-10-30T17:58:16",
+      "cached": true
+    }
+  },
+  "passed": true,
+  "total_seconds": 192.8
+}

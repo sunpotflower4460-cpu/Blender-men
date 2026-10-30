@@ -35,7 +35,7 @@
 | 既存 BH_rig 方式（Rigify＋自動ウェイト） | 15.9 秒 | 706（160） | 熱拡散。240 頂点が未割り当て | 不採用（関節の合わせ込みも別途必要） |
 
 ゲーム骨格は 53 本・全骨が変形用で、glTF にそのまま出せます。1 頂点あたりの骨の影響は 4 本に制限し、
-Blender 上と GLB 上の変形が一致するようにしています（往復誤差 0.004 mm 以下）。
+Blender 上と GLB 上の変形が一致するようにしています（往復誤差 0.17 mm 以下。体は 0.001 mm）。
 
 ### 髪・服の素材
 
@@ -99,7 +99,12 @@ python hq/author_assets.py            # 髪 3 種・服 6 点（約 12 分。素
 for c in master char_standard char_short_stocky char_tall_slim; do
   python hq/generate.py --config hq/config/$c.json --out-dir out/$c
 done
-python hq/collect_results.py --out out/results.json out/master out/char_standard out/char_short_stocky out/char_tall_slim
+# 髪・服の入れ替え（上の 3 人の焼き込みを使い回す）
+for c in char_standard char_short_stocky char_tall_slim; do
+  python hq/generate.py --config hq/config/swaps/${c}_swap.json --out-dir out/swaps/$c --samples 48
+done
+python hq/collect_results.py --out out/results.json out/master out/char_standard out/char_short_stocky out/char_tall_slim \
+  out/swaps/char_standard out/swaps/char_short_stocky out/swaps/char_tall_slim
 ```
 
 ### 段階と自動検査
@@ -125,17 +130,36 @@ python hq/collect_results.py --out out/results.json out/master out/char_standard
   （例: `python hq/author_assets.py --only tshirt`）。
 - `--dry-run` で、どの段階がなぜやり直しになるかを実行せずに確認できる。
 
-{PARTIAL}
+実測（7 件: 4 人＋髪・服の入れ替え 3 件）:
+
+| 状況 | やり直した段階 | 所要時間（7 件合計） |
+| --- | --- | --- |
+| 何も変えずに再実行 | なし（すべて飛ばす） | 0.5 秒 |
+| 動作検証のコード（`validate_motion.py`）を変更 | 7 件の validate だけ | 145 秒（全部作り直すと約 50 分） |
+| 長髪の素材（`assets/hair/long/`）を変更（`--dry-run` で確認） | 長髪を使う 2 件（tall_slim と standard の入れ替え）だけ build から | — |
 
 ## 3. 検証結果
 
-{RESULTS}
+最終の生成（7 件すべて合格）。`output/results.md` を `collect_results.py` で作ったもの。
+
+| キャラクター | 合格 | 髪 | 服 | 身長 | 破綻した辺（最大） | 肌の突き出し（最大） | GLB 往復誤差 | GLB | 生成時間（build / checks / render / validate） |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| master | ✓ | side_part | casual | 1.664 m | 0.18% | 0.8% | 0.14 mm | 8.2 MB | 334.4 / 1.7 / 75.5 / 19.8 秒 |
+| char_standard | ✓ | crew | casual | 1.676 m | 0.17% | 0.8% | 0.138 mm | 8.3 MB | 334.2 / 1.8 / 69.5 / 19.9 秒 |
+| char_short_stocky | ✓ | side_part | business | 1.47 m | 0.19% | 0.6% | 0.117 mm | 8.5 MB | 331.0 / 1.7 / 78.7 / 20.9 秒 |
+| char_tall_slim | ✓ | long | casual | 1.946 m | 0.16% | 0.7% | 0.167 mm | 9.5 MB | 342.4 / 2.1 / 169.9 / 20.8 秒 |
+| char_standard_swap | ✓ | long | business | 1.676 m | 0.18% | 0.6% | 0.138 mm | 9.7 MB | 30.0 / 1.8 / 138.4 / 22.6 秒 |
+| char_short_stocky_swap | ✓ | crew | casual | 1.47 m | 0.18% | 0.9% | 0.117 mm | 8.3 MB | 26.6 / 1.6 / 59.0 / 20.1 秒 |
+| char_tall_slim_swap | ✓ | side_part | business | 1.946 m | 0.17% | 0.7% | 0.167 mm | 8.5 MB | 28.7 / 1.8 / 57.4 / 20.3 秒 |
 
 - 「破綻した辺」: 3 つの動作のうち最大。体の辺のうち、長さが休止姿勢の 2.5 倍より長いか 0.25 倍より短く
   なった割合（合格基準 0.2%）。
 - 「肌の突き出し」: 3 つの動作・全部の服のうち最大。見えている肌から 1.5 cm 以内の服の頂点のうち、
-  肌より 2 mm 以上内側にあるものの割合（合格基準 3%）。
-- 「GLB 往復誤差」: GLB を書き出して読み込み直し、同じ姿勢で全メッシュの頂点位置を比べた最大の差。
+  同じ部位（胴・左右の腕・左右の脚）の肌より 2 mm 以上内側にあるものの割合（合格基準 3%）。
+  腕が胸に押し付けられるような体同士の接触は除く（部位を区別しない値も `visible_all` として記録）。
+- 「GLB 往復誤差」: GLB を書き出して読み込み直し、同じ姿勢で全メッシュの頂点位置を比べた最大の差
+  （合格基準 5 mm）。体・髪・目は 0.001 mm 以下。服は 0.03〜0.17 mm で、服のウェイトを平滑化してから
+  増えた（原因は未確認。見た目には影響しない大きさ）。
 - `*_swap` は、同じ体に別の髪型・服を組み合わせたもの（髪・服の入れ替えで壊れないかの確認）。
 
 画像:
@@ -153,11 +177,38 @@ python hq/collect_results.py --out out/results.json out/master out/char_standard
 
 計測環境: 4 コア CPU（GPU なし）、Blender 5.2.3（bpy モジュール）。
 
-{TIMES}
+| 作業 | 時間 |
+| --- | --- |
+| 新しい人物 1 人（build → checks → render → validate） | 約 7〜9 分（build 約 330〜345 秒、その大半は 4K の色・法線の焼き込み。render 70〜170 秒、長髪が最も遅い。validate 約 20 秒、checks 約 2 秒） |
+| 同じ体で髪・服だけを替える（焼き込みの使い回し） | 約 2〜3.5 分（build 約 27〜30 秒） |
+| 服 1 点の素材づくり | 約 1〜1.5 分（布シミュレーション 8〜13 秒、質感の焼き込み 15 秒、MPFB の .mhclo 対応付け 40〜45 秒） |
+| 髪 1 種の素材づくり | 約 1 分（生成 3〜4 秒、.mhclo 対応付け 60 秒） |
+| 全素材（髪 3・服 6） | 約 12 分 |
 
 ### 失敗の記録
 
-{FAILURES}
+最終版のコードに近づいてからの通しの実行（各 7 件）:
+
+| 実行 | 変更点 | 合格 | 失敗の内容と自動で記録された対処 |
+| --- | --- | --- | --- |
+| 1 | 首回り・生え際・頭皮・靴の修正後 | 6 / 7 | short_stocky の入れ替え（crew・casual）: キックで Tシャツの上に肌 3.29%。remedy: `author_assets.py --only tshirt` |
+| 2 | Tシャツの胸のゆとり 2.0 → 2.6 cm（Tシャツだけ作り直し） | 7 / 7 | — |
+| 3 | 服のウェイトの平滑化（脇の下の裂け対策） | 6 / 7 | 同じ入れ替えでキック 3.11%。調べると、太い腕が自分の胸に食い込み、胴の部分の服が腕の肌の内側に入っていた（腕は服の手前にあり、画像では突き抜けは見えない） |
+| 4 | 突き出しを同じ部位の肌で判定（validate だけやり直し） | 7 / 7 | — |
+
+失敗率は 1 回目・3 回目とも 7 件中 1 件（約 14%）で、どちらも同じ組み合わせ（小柄でがっしりした体型 × Tシャツ × キック）。
+最終版では 7 件すべて合格し、部位を区別しない参考値（`motion.json` の `visible_all`）でもこの組み合わせが最大（3.1%）。
+
+開発中に見つかり、検査を追加・強化した失敗:
+
+| 失敗 | 見つけ方 | 対処 |
+| --- | --- | --- |
+| 長身の人物が身長の範囲外（2.18 m） | checks | 設定の height を 0.75 に |
+| 服に穴・裂け（素材づくり 2 回） | 開口部の数の検査 | 袖口の切り直しをやめる、脇の下のゆとりを戻す |
+| 髪・服の入れ替えで腕・首が黒い | 画像を見て発見 | 焼き込み時に服の下を隠す設定を外す。**隠した肌の真上に服があるかの検査を追加** |
+| スニーカーの上に足の肌が突き出す（4.2%） | checks | 靴の殻に包まれる足の頂点をすべて隠す。殻に囲まれた肌は検査で「覆われている」と扱う |
+| 首回りの破片・耳の上で跳ねる毛束・段になった生え際・薄い頭皮・脇の下の裂け | 画像を見て発見（自動検査では見つからない） | それぞれ修正（コミット履歴を参照） |
+| 足を隠すと身長が約 6 cm 低く測られる | 数値の不一致から発見 | 隠した部分も含めて測る |
 
 ## 5. 既知の限界
 
@@ -166,8 +217,9 @@ python hq/collect_results.py --out out/results.json out/master out/char_standard
   首回りの破片・耳の上で跳ねる毛束・段になった生え際・脇の下の布の裂けは、画像を見て見つけて直した。
 - 服の細かいしわは少ない（形状は意図的に滑らかにし、質感は焼き込んだ法線マップで表現）。
   袖口の中は暗く見える（袖の下の肌を隠しているため、袖の内側が見える）。
-- 腕を前へ出すと、Tシャツの脇の下に 1 枚の折れ目ができる（布シミュレーションではなく骨の変形のため）。
-- 小柄でがっしりした体型にカジュアル服を着せると、キックでの肌の突き出しが基準の 3% に近い。
+- 腕を前へ出すと、Tシャツの脇の下に折れ目ができ、細身の体型では布が少し垂れ下がる
+  （布シミュレーションではなく骨の変形のため。`output/three_characters_motion.png` の右端）。
+- 小柄でがっしりした体型では、ガードの姿勢で腕が胸に食い込む（体そのものの干渉）。
 - 髪はカード方式。近づくとカードの縁が見える。長い髪は揺れ用の骨がない（頭・首・胸に固定）。
 - 表情（シェイプキー）は未設定。
 - 焼き込み（4K の色と法線）が生成時間の大半を占める。

@@ -1,0 +1,37 @@
+{
+  "name": "char_standard_swap",
+  "description": "標準体型に長髪・ビジネス服を組み合わせた入れ替え確認用",
+  "macros": {
+    "gender": 1.0,
+    "age": 0.5,
+    "muscle": 0.5,
+    "weight": 0.5,
+    "height": 0.52,
+    "proportions": 0.55,
+    "asian": 0.75,
+    "caucasian": 0.2,
+    "african": 0.05
+  },
+  "targets": {},
+  "rig": "game_engine",
+  "skin": {
+    "color": [
+      0.52,
+      0.33,
+      0.22
+    ],
+    "roughness": 0.42
+  },
+  "eyes": {
+    "iris_color": [
+      0.1,
+      0.055,
+      0.03
+    ]
+  },
+  "hair": "long",
+  "outfit": "business",
+  "bake": {
+    "reuse": "out/char_standard/textures/char_standard_body"
+  }
+}

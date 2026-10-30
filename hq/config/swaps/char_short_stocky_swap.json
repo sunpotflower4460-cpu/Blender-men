@@ -1,0 +1,37 @@
+{
+  "name": "char_short_stocky_swap",
+  "description": "小柄でがっしりした体型に短髪・普段着を組み合わせた入れ替え確認用",
+  "macros": {
+    "gender": 1.0,
+    "age": 0.62,
+    "muscle": 0.85,
+    "weight": 0.78,
+    "height": 0.18,
+    "proportions": 0.4,
+    "asian": 0.6,
+    "caucasian": 0.3,
+    "african": 0.1
+  },
+  "targets": {},
+  "rig": "game_engine",
+  "skin": {
+    "color": [
+      0.45,
+      0.27,
+      0.18
+    ],
+    "roughness": 0.45
+  },
+  "eyes": {
+    "iris_color": [
+      0.1,
+      0.055,
+      0.03
+    ]
+  },
+  "hair": "crew",
+  "outfit": "casual",
+  "bake": {
+    "reuse": "out/char_short_stocky/textures/char_short_stocky_body"
+  }
+}

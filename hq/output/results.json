@@ -1,0 +1,149 @@
+[
+  {
+    "name": "master",
+    "passed": true,
+    "hair": "side_part",
+    "outfit": "casual",
+    "height_m": 1.664,
+    "bones": 53,
+    "bad_edge_ratio_max": 0.0018,
+    "skin_poke_visible_max": 0.00785,
+    "hidden_skin_exposed": 0,
+    "glb_vertex_error_max_mm": 0.14,
+    "glb_mb": 8.2,
+    "seconds": {
+      "build": 334.4,
+      "checks": 1.7,
+      "render": 75.5,
+      "validate": 19.8
+    },
+    "total_seconds": 431.4,
+    "failures": []
+  },
+  {
+    "name": "char_standard",
+    "passed": true,
+    "hair": "crew",
+    "outfit": "casual",
+    "height_m": 1.676,
+    "bones": 53,
+    "bad_edge_ratio_max": 0.00169,
+    "skin_poke_visible_max": 0.00793,
+    "hidden_skin_exposed": 0,
+    "glb_vertex_error_max_mm": 0.138,
+    "glb_mb": 8.3,
+    "seconds": {
+      "build": 334.2,
+      "checks": 1.8,
+      "render": 69.5,
+      "validate": 19.9
+    },
+    "total_seconds": 425.4,
+    "failures": []
+  },
+  {
+    "name": "char_short_stocky",
+    "passed": true,
+    "hair": "side_part",
+    "outfit": "business",
+    "height_m": 1.47,
+    "bones": 53,
+    "bad_edge_ratio_max": 0.00192,
+    "skin_poke_visible_max": 0.00589,
+    "hidden_skin_exposed": 0,
+    "glb_vertex_error_max_mm": 0.117,
+    "glb_mb": 8.5,
+    "seconds": {
+      "build": 331.0,
+      "checks": 1.7,
+      "render": 78.7,
+      "validate": 20.9
+    },
+    "total_seconds": 432.3,
+    "failures": []
+  },
+  {
+    "name": "char_tall_slim",
+    "passed": true,
+    "hair": "long",
+    "outfit": "casual",
+    "height_m": 1.946,
+    "bones": 53,
+    "bad_edge_ratio_max": 0.00163,
+    "skin_poke_visible_max": 0.00734,
+    "hidden_skin_exposed": 0,
+    "glb_vertex_error_max_mm": 0.167,
+    "glb_mb": 9.5,
+    "seconds": {
+      "build": 342.4,
+      "checks": 2.1,
+      "render": 169.9,
+      "validate": 20.8
+    },
+    "total_seconds": 535.2,
+    "failures": []
+  },
+  {
+    "name": "char_standard_swap",
+    "passed": true,
+    "hair": "long",
+    "outfit": "business",
+    "height_m": 1.676,
+    "bones": 53,
+    "bad_edge_ratio_max": 0.0018,
+    "skin_poke_visible_max": 0.00589,
+    "hidden_skin_exposed": 0,
+    "glb_vertex_error_max_mm": 0.138,
+    "glb_mb": 9.7,
+    "seconds": {
+      "build": 30.0,
+      "checks": 1.8,
+      "render": 138.4,
+      "validate": 22.6
+    },
+    "total_seconds": 192.8,
+    "failures": []
+  },
+  {
+    "name": "char_short_stocky_swap",
+    "passed": true,
+    "hair": "crew",
+    "outfit": "casual",
+    "height_m": 1.47,
+    "bones": 53,
+    "bad_edge_ratio_max": 0.0018,
+    "skin_poke_visible_max": 0.00881,
+    "hidden_skin_exposed": 0,
+    "glb_vertex_error_max_mm": 0.117,
+    "glb_mb": 8.3,
+    "seconds": {
+      "build": 26.6,
+      "checks": 1.6,
+      "render": 59.0,
+      "validate": 20.1
+    },
+    "total_seconds": 107.3,
+    "failures": []
+  },
+  {
+    "name": "char_tall_slim_swap",
+    "passed": true,
+    "hair": "side_part",
+    "outfit": "business",
+    "height_m": 1.946,
+    "bones": 53,
+    "bad_edge_ratio_max": 0.00174,
+    "skin_poke_visible_max": 0.00729,
+    "hidden_skin_exposed": 0,
+    "glb_vertex_error_max_mm": 0.167,
+    "glb_mb": 8.5,
+    "seconds": {
+      "build": 28.7,
+      "checks": 1.8,
+      "render": 57.4,
+      "validate": 20.3
+    },
+    "total_seconds": 108.2,
+    "failures": []
+  }
+]

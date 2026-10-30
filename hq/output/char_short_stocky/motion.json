@@ -1,9 +1,9 @@
 {
-  "blend": "/tmp/claude-0/-home-user-Blender-men/5f7f36a2-f2da-5203-b4a8-32065810d610/scratchpad/hq/gen/char_short_stocky/char_short_stocky.blend",
-  "glb": "/tmp/claude-0/-home-user-Blender-men/5f7f36a2-f2da-5203-b4a8-32065810d610/scratchpad/hq/gen/char_short_stocky/char_short_stocky.glb",
+  "blend": "hq/output/char_short_stocky/char_short_stocky.blend",
+  "glb": "hq/output/char_short_stocky/char_short_stocky.glb",
   "poses": {
     "rest": {
-      "edges": 16710,
+      "edges": 16122,
       "bad_edges": 0,
       "bad_ratio": 0.0,
       "max_stretch": 1.0,
@@ -11,88 +11,100 @@
       "eye_drift_m": 0.0,
       "penetration": {
         "BH_clothes_dress_shirt": {
-          "visible": 0.00253,
-          "under": 0.00243
+          "visible": 0.00485,
+          "visible_all": 0.00485,
+          "under": 0.00485
         },
         "BH_clothes_dress_shoes": {
-          "visible": 0.01154,
+          "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.05499
         },
         "BH_clothes_slacks": {
           "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.0
         }
       }
     },
     "punch": {
-      "edges": 16710,
-      "bad_edges": 17,
-      "bad_ratio": 0.00102,
+      "edges": 16122,
+      "bad_edges": 15,
+      "bad_ratio": 0.00093,
       "max_stretch": 4.202,
       "min_shrink": 0.114,
       "eye_drift_m": 0.0,
       "penetration": {
         "BH_clothes_dress_shirt": {
-          "visible": 0.00628,
-          "under": 0.01616
+          "visible": 0.00544,
+          "visible_all": 0.00794,
+          "under": 0.01778
         },
         "BH_clothes_dress_shoes": {
-          "visible": 0.01147,
+          "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.05499
         },
         "BH_clothes_slacks": {
           "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.0
         }
       }
     },
     "kick": {
-      "edges": 16710,
-      "bad_edges": 32,
+      "edges": 16122,
+      "bad_edges": 31,
       "bad_ratio": 0.00192,
       "max_stretch": 8.086,
       "min_shrink": 0.1,
       "eye_drift_m": 0.0,
       "penetration": {
         "BH_clothes_dress_shirt": {
-          "visible": 0.02458,
-          "under": 0.04478
+          "visible": 0.00583,
+          "visible_all": 0.02058,
+          "under": 0.0459
         },
         "BH_clothes_dress_shoes": {
-          "visible": 0.01036,
-          "under": 0.05506
+          "visible": 0.0,
+          "visible_all": 0.0,
+          "under": 0.05499
         },
         "BH_clothes_slacks": {
-          "visible": 0.00316,
-          "under": 0.021
+          "visible": 0.00589,
+          "visible_all": 0.01142,
+          "under": 0.03093
         }
       }
     },
     "crouch": {
-      "edges": 16710,
+      "edges": 16122,
       "bad_edges": 23,
-      "bad_ratio": 0.00138,
+      "bad_ratio": 0.00143,
       "max_stretch": 5.739,
       "min_shrink": 0.085,
       "eye_drift_m": 0.0,
       "penetration": {
         "BH_clothes_dress_shirt": {
-          "visible": 0.00608,
-          "under": 0.01709
+          "visible": 0.0048,
+          "visible_all": 0.0048,
+          "under": 0.01661
         },
         "BH_clothes_dress_shoes": {
-          "visible": 0.01119,
+          "visible": 0.0,
+          "visible_all": 0.0,
           "under": 0.05485
         },
         "BH_clothes_slacks": {
-          "visible": 0.00123,
-          "under": 0.02408
+          "visible": 0.0,
+          "visible_all": 0.0,
+          "under": 0.02267
         }
       }
     }
   },
   "glb_check": {
-    "size_bytes": 8045688,
+    "size_bytes": 8499996,
     "bones": 53,
     "meshes": [
       "BH_body",
@@ -107,8 +119,8 @@
     "vertex_error": {
       "BH_body": {
         "rest_map_err_m": 1e-06,
-        "vertices_glb": 9231,
-        "vertices_blender": 8465,
+        "vertices_glb": 8878,
+        "vertices_blender": 8147,
         "rest": {
           "max_m": 1e-06,
           "p99_m": 0.0,
@@ -132,27 +144,27 @@
       },
       "BH_clothes_dress_shirt": {
         "rest_map_err_m": 1e-06,
-        "vertices_glb": 21500,
-        "vertices_blender": 20544,
+        "vertices_glb": 21362,
+        "vertices_blender": 20412,
         "rest": {
           "max_m": 1e-06,
           "p99_m": 1e-06,
           "mean_m": 0.0
         },
         "punch": {
-          "max_m": 0.0,
-          "p99_m": 0.0,
-          "mean_m": 0.0
+          "max_m": 2.4e-05,
+          "p99_m": 8e-06,
+          "mean_m": 1e-06
         },
         "kick": {
-          "max_m": 1e-06,
-          "p99_m": 0.0,
+          "max_m": 1.7e-05,
+          "p99_m": 6e-06,
           "mean_m": 0.0
         },
         "crouch": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
-          "mean_m": 0.0
+          "max_m": 1.8e-05,
+          "p99_m": 8e-06,
+          "mean_m": 1e-06
         }
       },
       "BH_clothes_dress_shoes": {
@@ -165,19 +177,19 @@
           "mean_m": 0.0
         },
         "punch": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
-          "mean_m": 0.0
+          "max_m": 3.7e-05,
+          "p99_m": 6e-06,
+          "mean_m": 1e-06
         },
         "kick": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
-          "mean_m": 0.0
+          "max_m": 0.000117,
+          "p99_m": 2e-05,
+          "mean_m": 1e-06
         },
         "crouch": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
-          "mean_m": 0.0
+          "max_m": 1.5e-05,
+          "p99_m": 9e-06,
+          "mean_m": 1e-06
         }
       },
       "BH_clothes_slacks": {
@@ -190,19 +202,19 @@
           "mean_m": 0.0
         },
         "punch": {
-          "max_m": 0.0,
-          "p99_m": 0.0,
+          "max_m": 2.1e-05,
+          "p99_m": 7e-06,
           "mean_m": 0.0
         },
         "kick": {
-          "max_m": 1e-06,
-          "p99_m": 1e-06,
-          "mean_m": 0.0
+          "max_m": 6.2e-05,
+          "p99_m": 2.1e-05,
+          "mean_m": 1e-06
         },
         "crouch": {
-          "max_m": 1e-06,
-          "p99_m": 0.0,
-          "mean_m": 0.0
+          "max_m": 2.4e-05,
+          "p99_m": 1.4e-05,
+          "mean_m": 1e-06
         }
       },
       "BH_eyelashes": {
@@ -257,8 +269,8 @@
       },
       "BH_hair_side_part": {
         "rest_map_err_m": 0.0,
-        "vertices_glb": 40800,
-        "vertices_blender": 40800,
+        "vertices_glb": 38850,
+        "vertices_blender": 38850,
         "rest": {
           "max_m": 0.0,
           "p99_m": 0.0,
