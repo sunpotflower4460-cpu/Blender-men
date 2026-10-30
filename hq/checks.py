@@ -142,7 +142,13 @@ def main():
     report["skeleton"] = {"bones": len(rig.data.bones), "deform": len(bones)}
     if len(rig.data.bones) != EXPECTED_BONES or len(bones) != EXPECTED_BONES:
         failures.append(f"骨格: 骨の数 {len(rig.data.bones)}（期待 {EXPECTED_BONES}）")
+    # 身長は服の下に隠した部分（靴の中の足裏など）も含めて測る
+    masks = [m for m in body.modifiers if m.type == "MASK" and m.name.startswith("Delete")]
+    for m in masks:
+        m.show_viewport = False
     body_pts = evaluated(body)
+    for m in masks:
+        m.show_viewport = True
     height = max(p.z for p in body_pts) - min(p.z for p in body_pts)
     report["skeleton"]["height_m"] = round(height, 3)
     if not 1.40 < height < 2.15:
@@ -168,8 +174,6 @@ def main():
             failures.append(f"マテリアル: {o.name} が画像テクスチャでない（glTF で見た目が変わる）")
 
     deps = bpy.context.evaluated_depsgraph_get()
-    full_bvh = None
-    masks = [m for m in body.modifiers if m.type == "MASK" and m.name.startswith("Delete")]
     for m in masks:
         m.show_viewport = False
     full_bvh = BVHTree.FromObject(body, bpy.context.evaluated_depsgraph_get())
