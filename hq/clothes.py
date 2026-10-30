@@ -151,6 +151,11 @@ def ease_slacks(ref, co, bone):
     return 0.011
 
 
+# 布全体にかける弱い固定（ゆとりを付けた形へ引き戻す力）。重力で布がずり落ち、膝や足首で
+# しわが重なって自己交差する（裏面が黒い裂け目のように見える）のを防ぐ。
+BASE_PIN = 0.35
+
+
 def _armpit(ref, co):
     """脇の下付近（腕と胴が近く、衝突が不安定になる場所）か。"""
     for side in ("l", "r"):
@@ -169,7 +174,7 @@ def pin_shirt(ref, co, bone):
         return 0.7
     if _armpit(ref, co):
         return 0.6
-    return 0.0
+    return BASE_PIN
 
 
 def pin_trousers(ref, co, bone):
@@ -179,7 +184,7 @@ def pin_trousers(ref, co, bone):
         return 1.0
     if abs(co.x) < 0.07 and co.z > pelvis_h.z - 0.22:
         return 0.7
-    return 0.0
+    return BASE_PIN
 
 
 GARMENTS = {
@@ -422,7 +427,8 @@ def simulate(obj, ref, pin_fn, frames, body):
     s.pin_stiffness = 1.0
     cs = cloth.collision_settings
     cs.distance_min = 0.005
-    cs.use_self_collision = False
+    cs.use_self_collision = True
+    cs.self_distance_min = 0.003
     cloth.point_cache.frame_start = 1
     cloth.point_cache.frame_end = frames
     sc = bpy.context.scene
