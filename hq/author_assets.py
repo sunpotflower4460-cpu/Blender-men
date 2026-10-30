@@ -62,17 +62,19 @@ def ensure_uv(obj):
     bpy.ops.object.mode_set(mode="OBJECT")
 
 
-def covered_body_verts(ref, garment, max_dist=0.08, erode=0):
-    """服の下に隠れる体の頂点（評価後メッシュの番号）。法線方向へ光線を飛ばし、服に当たるものを選び、
-    縁から erode 輪ぶん内側だけを残す（縁の近くは隠すと隙間が見えるため）。"""
+def covered_body_verts(ref, garment, max_dist=0.05, erode=1):
+    """服の下に隠れる体の頂点（評価後メッシュの番号）。法線方向へ光線を飛ばし、肌と同じ向きの服の面に
+    当たるものを選び、縁から erode 輪ぶん内側だけを残す（縁の近くは隠すと隙間が見えるため）。
+
+    向きの条件がないと、腕の内側の肌から出た光線が胴体側の服に当たり、見えている肌まで隠してしまう。"""
     from mathutils.bvhtree import BVHTree
     deps = bpy.context.evaluated_depsgraph_get()
     gbvh = BVHTree.FromObject(garment, deps)
     mesh = ref.mesh
     hit = set()
     for v in mesh.vertices:
-        loc, _, _, dist = gbvh.ray_cast(v.co + v.normal * 0.0005, v.normal, max_dist)
-        if loc is not None:
+        loc, normal, _, dist = gbvh.ray_cast(v.co + v.normal * 0.0005, v.normal, max_dist)
+        if loc is not None and abs(normal.dot(v.normal)) > 0.5:
             hit.add(v.index)
     neighbours = {v.index: set() for v in mesh.vertices}
     for e in mesh.edges:

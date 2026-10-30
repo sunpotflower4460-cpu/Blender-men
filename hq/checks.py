@@ -66,6 +66,49 @@ def material_is_exportable(obj):
     return True
 
 
+def exposed_hidden_skin(body, clothes, reach=0.06):
+    """Delete マスクで隠した体の頂点のうち、法線方向 reach 以内に同じ向きの服の面がないものを数える。"""
+    masks = [m for m in body.modifiers if m.type == "MASK" and m.name.startswith("Delete")]
+    if not masks or not clothes:
+        return 0, 0
+    hidden = set()
+    for m in masks:
+        g = body.vertex_groups.get(m.vertex_group)
+        if g is None:
+            continue
+        for v in body.data.vertices:
+            if any(x.group == g.index and x.weight > 0 for x in v.groups):
+                hidden.add(v.index)
+    for m in masks:
+        m.show_viewport = False
+    deps = bpy.context.evaluated_depsgraph_get()
+    ev = body.evaluated_get(deps)
+    mesh = ev.to_mesh()
+    # 補助形状を隠す MASK は残っているので、評価後の頂点番号 → 元の番号の対応を作る
+    gi = body.vertex_groups["body"].index
+    original = [v.index for v in body.data.vertices if any(x.group == gi and x.weight > 0 for x in v.groups)]
+    trees = [BVHTree.FromObject(o, deps) for o in clothes]
+    exposed = 0
+    count = 0
+    for i, v in enumerate(mesh.vertices):
+        if original[i] not in hidden:
+            continue
+        count += 1
+        p, n = body.matrix_world @ v.co, (body.matrix_world.to_3x3() @ v.normal).normalized()
+        covered = False
+        for t in trees:
+            loc, normal, _, _ = t.ray_cast(p + n * 0.0005, n, reach)
+            if loc is not None and abs(normal.dot(n)) > 0.3:
+                covered = True
+                break
+        if not covered:
+            exposed += 1
+    ev.to_mesh_clear()
+    for m in masks:
+        m.show_viewport = True
+    return exposed, count
+
+
 def main():
     args = parse_args()
     bpy.ops.wm.open_mainfile(filepath=os.path.abspath(args.blend))
@@ -173,6 +216,14 @@ def main():
             failures.append(f"服: {name} の下の体を隠す設定がない")
         if ratio > 0.03:
             failures.append(f"服: {name} の上に肌が突き出す割合 {ratio}")
+
+    # 隠した肌の露出: 服の下として隠した体の頂点の真上（法線方向）に服があるか。
+    # 服がない所を隠すと、体の内側（黒い穴）が見える。
+    exposed, hidden = exposed_hidden_skin(body, clothes)
+    report["hidden_skin"] = {"hidden_vertices": hidden, "exposed": exposed,
+                             "exposed_ratio": round(exposed / max(1, hidden), 4)}
+    if hidden and exposed / hidden > 0.005:
+        failures.append(f"服: 隠した肌のうち真上に服がない頂点 {exposed}/{hidden}（体に穴が見える）")
 
     report["failures"] = failures
     report["passed"] = not failures

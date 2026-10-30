@@ -148,7 +148,7 @@ def ease_tshirt(ref, co, bone):
     if bone.startswith("upperarm"):
         # 付け根は 0.022（0.030 にすると脇の下で布に穴が開く: 開口部の検査で検出）。
         # 袖口へ向かって広げ、腕を曲げて二の腕が盛り上がっても袖口が食い込まないようにする
-        return 0.022 + 0.020 * max(0.0, min(1.0, ref.along(co, bone) / 0.48))
+        return 0.022 + 0.010 * max(0.0, min(1.0, ref.along(co, bone) / 0.48))
     belly = 1.0 - min(1.0, max(0.0, (co.z - pelvis_h.z) / 0.35))
     return 0.020 + 0.014 * belly
 

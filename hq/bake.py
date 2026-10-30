@@ -53,10 +53,12 @@ def bake_object(obj, out_dir, prefix, size=2048, normal=False, margin=8):
     sc.render.bake.margin = margin
     sc.render.bake.use_selected_to_active = False
 
-    # 休止姿勢・補助形状なしの状態で焼く（細分化は外す）
+    # 休止姿勢・補助形状なしの状態で焼く（細分化は外す）。
+    # 服の下を隠す Delete マスクも外す: 隠したまま焼くとその部分のテクスチャが黒いまま残り、
+    # 別の服（例: 長袖 → 半袖）に着替えたときに黒い肌が見える
     saved = []
     for m in obj.modifiers:
-        if m.type == "SUBSURF":
+        if m.type == "SUBSURF" or (m.type == "MASK" and m.name.startswith("Delete")):
             saved.append((m, m.show_render))
             m.show_render = False
 
