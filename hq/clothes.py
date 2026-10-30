@@ -150,7 +150,8 @@ def ease_tshirt(ref, co, bone):
         # 袖口へ向かって広げ、腕を曲げて二の腕が盛り上がっても袖口が食い込まないようにする
         return 0.022 + 0.010 * max(0.0, min(1.0, ref.along(co, bone) / 0.48))
     belly = 1.0 - min(1.0, max(0.0, (co.z - pelvis_h.z) / 0.35))
-    return 0.020 + 0.014 * belly
+    # 胸は 0.026: 小柄でがっしりした体型のキックで、ガードした腕に押された胸が 0.020 では 3.3% 突き出した
+    return 0.026 + 0.008 * belly
 
 
 def ease_dress_shirt(ref, co, bone):

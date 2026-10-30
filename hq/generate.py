@@ -28,7 +28,7 @@ import time
 HQ_DIR = os.path.dirname(os.path.abspath(__file__))
 STAGES = ["build", "checks", "render", "validate"]
 STAGE_CODE = {
-    "build": ["build_character.py", "face_details.py", "hair.py", "bake.py", "mpfb_env.py", "assets/index.json"],
+    "build": ["build_character.py", "face_details.py", "hair.py", "bake.py", "mpfb_env.py"],
     "checks": ["checks.py"],
     "render": ["render_views.py"],
     "validate": ["validate_motion.py"],
@@ -51,6 +51,22 @@ def file_hash(paths):
         with open(p, "rb") as f:
             h.update(f.read())
     return h.hexdigest()[:16]
+
+
+def asset_files(config):
+    """設定が使う髪・服の素材フォルダのファイル。素材を作り直したとき、それを使う人物だけを作り直すため。"""
+    with open(os.path.join(HQ_DIR, "assets", "index.json"), encoding="utf-8") as f:
+        index = json.load(f)
+    entries = []
+    if config.get("hair"):
+        entries.append(index["hair"][config["hair"]])
+    for name in index["outfits"].get(config.get("outfit") or "", []):
+        entries.append(index["clothes"][name])
+    files = []
+    for e in entries:
+        folder = os.path.join(HQ_DIR, "assets", os.path.dirname(e["mhclo"]))
+        files += sorted(os.path.join(folder, n) for n in os.listdir(folder))
+    return files
 
 
 def remedy(stage, failure, config):
@@ -97,6 +113,8 @@ def main():
             summary["stages"][stage] = state.get(stage, {"skipped": True})
             continue
         inputs = [args.config] + [os.path.join(HQ_DIR, p) for p in STAGE_CODE[stage]]
+        if stage == "build":
+            inputs += asset_files(config)
         key = file_hash(inputs)
         prev = state.get(stage, {})
         if not args.force and not upstream_changed and prev.get("ok") and prev.get("input_hash") == key:
