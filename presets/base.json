@@ -1,0 +1,12 @@
+{
+  "name": "base",
+  "description": "すべての体型の基準になる標準体型（身長170cm・倍率はすべて1.0）",
+  "height": 1.70,
+  "leg_length": 1.0,
+  "torso_length": 1.0,
+  "arm_length": 1.0,
+  "shoulder_width": 1.0,
+  "hip_width": 1.0,
+  "head_scale": 1.0,
+  "girth": 1.0
+}

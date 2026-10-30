@@ -1,0 +1,12 @@
+{
+  "name": "example_short_stocky",
+  "description": "派生例: 低身長・がっしり体型",
+  "height": 1.58,
+  "leg_length": 0.92,
+  "torso_length": 1.05,
+  "arm_length": 0.96,
+  "shoulder_width": 1.12,
+  "hip_width": 1.08,
+  "head_scale": 1.06,
+  "girth": 1.25
+}

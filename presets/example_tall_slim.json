@@ -1,0 +1,12 @@
+{
+  "name": "example_tall_slim",
+  "description": "派生例: 高身長・脚長・細身",
+  "height": 1.88,
+  "leg_length": 1.08,
+  "torso_length": 0.97,
+  "arm_length": 1.04,
+  "shoulder_width": 0.95,
+  "hip_width": 0.95,
+  "head_scale": 0.95,
+  "girth": 0.85
+}
