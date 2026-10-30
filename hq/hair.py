@@ -25,14 +25,14 @@ STYLES = {
         "length": (0.026, 0.040), "side_scale": 0.42, "back_scale": 0.5,
         "cards": 5200, "width": 0.0085, "segments": 3,
         "flow": "back", "lift": 0.30, "gravity": 0.05,
-        "offset": 0.0012, "layer": 0.0011,
+        "offset": 0.0012, "layer": 0.0011, "max_offset": 0.018,
     },
     "side_part": {
         "description": "七三分け。分け目から反対側へ流し、前髪を横へ",
         "length": (0.065, 0.095), "side_scale": 0.45, "back_scale": 0.45,
         "cards": 3400, "width": 0.011, "segments": 5,
         "flow": "side_part", "part_azimuth": 38.0, "lift": 0.18, "gravity": 0.22,
-        "offset": 0.0015, "layer": 0.0016,
+        "offset": 0.0015, "layer": 0.0016, "max_offset": 0.026,
     },
     "long": {
         "description": "肩までの長髪。中央分けで両側と後ろへ下ろす",
@@ -210,8 +210,12 @@ def grow_strand(style, head, root, rng):
         jitter = Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1))) * 0.08
         direction = (direction + jitter).normalized()
         min_off = style["offset"] + style["layer"] * k
-        if (p - q).dot(n) < min_off:
+        height = (p - q).dot(n)
+        if height < min_off:
             p = q + n * min_off
+        elif "max_offset" in style and height > style["max_offset"]:
+            # 短い髪型で毛束が頭から離れて跳ねないようにする
+            p = q + n * style["max_offset"]
         pts.append(p)
     return pts
 

@@ -170,6 +170,13 @@ def main():
         out = os.path.join(ASSET_DIR, "clothes", name)
         os.makedirs(out, exist_ok=True)
         obj, _ = clothes.make_garment(ref, human, rig, name)
+        expected = clothes.EXPECTED_OPENINGS.get(name)
+        if expected is not None and obj.get("bh_boundary_loops") != expected:
+            # 穴が開いた服は素材にしない（原因を記録して次へ。既存の素材は上書きしない）
+            index["clothes"][name] = {"error": f"開口部 {obj.get('bh_boundary_loops')} 個（期待 {expected} 個）: 穴または裂け"}
+            print(json.dumps({"asset": f"clothes/{name}", **index["clothes"][name]}, ensure_ascii=False))
+            bpy.data.objects.remove(obj)
+            continue
         triangulate(obj)
         ensure_uv(obj)
         gen_time = time.time() - t0
@@ -184,6 +191,7 @@ def main():
         index["clothes"][name] = {"mhclo": os.path.relpath(path, ASSET_DIR), "fabric": spec["fabric"],
                                   "faces": len(obj.data.polygons), "hidden_body_verts": len(delete_verts),
                                   "sim_reverted_verts": obj.get("bh_sim_reverted_verts", 0),
+                                  "openings": obj.get("bh_boundary_loops"),
                                   "generate_s": round(gen_time, 1), "bake_s": round(bake_time, 1),
                                   "match_s": match_time, "license": "CC0 (generated in this repository)"}
         for img in baked.values():

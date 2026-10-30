@@ -285,10 +285,15 @@ def cut_sleeve(bm, ref, side, along):
     cut(bm, h + (t - h) * a, axis, faces)
 
 
-def clean(bm, min_faces=40):
-    """切断で生じた重複頂点・縮退面、面のない辺・頂点、小さな断片を取り除く。"""
-    bmesh.ops.remove_doubles(bm, verts=list(bm.verts), dist=0.0025)
-    bmesh.ops.dissolve_degenerate(bm, edges=list(bm.edges), dist=0.0015)
+def clean(bm, min_faces=40, merge=True):
+    """切断で生じた重複頂点・縮退面、面のない辺・頂点、小さな断片を取り除く。
+
+    merge=False: 頂点の結合をしない。布シミュレーション後は折れ重なった布の頂点同士が近づくため、
+    結合すると布が裂ける。
+    """
+    if merge:
+        bmesh.ops.remove_doubles(bm, verts=list(bm.verts), dist=0.0025)
+        bmesh.ops.dissolve_degenerate(bm, edges=list(bm.edges), dist=0.0015)
     bmesh.ops.delete(bm, geom=[e for e in bm.edges if not e.link_faces], context="EDGES")
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
     seen, small = set(), []
@@ -338,7 +343,23 @@ TRIMS = {
 }
 
 
-def apply_trims(bm, ref, name):
+def smooth_boundary(bm, ref, iterations=4):
+    """首回りの縁を、縁に沿ってならす（高さと半径のギザギザを消す）。"""
+    neck_h, _ = ref.bones["neck_01"]
+    ring = [v for v in bm.verts if v.is_boundary and v.co.z > neck_h.z - 0.15
+            and Vector((v.co.x - neck_h.x, v.co.y - neck_h.y, 0)).length < 0.17]
+    ring_set = set(ring)
+    for _ in range(iterations):
+        new = {}
+        for v in ring:
+            nb = [e.other_vert(v) for e in v.link_edges if e.is_boundary and e.other_vert(v) in ring_set]
+            if len(nb) == 2:
+                new[v] = (v.co * 2 + nb[0].co + nb[1].co) / 4
+        for v, co in new.items():
+            v.co = co
+
+
+def apply_trims(bm, ref, name, merge=True):
     trim = TRIMS.get(name)
     if not trim:
         return
@@ -358,7 +379,8 @@ def apply_trims(bm, ref, name):
         cut(bm, Vector((0, 0, foot_h.z + trim["ankle"])), Vector((0, 0, -1)))
     if "neck" in trim:
         round_neckline(bm, ref, trim["neck"], depth_front=0.02)
-    clean(bm)
+        smooth_boundary(bm, ref)
+    clean(bm, merge=merge)
 
 
 # ---------------------------------------------------------------------------
@@ -570,6 +592,33 @@ def fabric_material(name, spec):
     return mat
 
 
+def boundary_loops(mesh):
+    """開口部（境界ループ）の数。穴が開くと増える。"""
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    edges = {e for e in bm.edges if e.is_boundary}
+    seen, count = set(), 0
+    for e in edges:
+        if e in seen:
+            continue
+        count += 1
+        stack = [e]
+        seen.add(e)
+        while stack:
+            x = stack.pop()
+            for v in x.verts:
+                for y in v.link_edges:
+                    if y in edges and y not in seen:
+                        seen.add(y)
+                        stack.append(y)
+    bm.free()
+    return count
+
+
+# 服ごとの開口部の期待数（首・裾・袖口・ウエスト・足首。靴は左右の足首の開口）
+EXPECTED_OPENINGS = {"tshirt": 4, "dress_shirt": 4, "jeans": 3, "slacks": 3, "sneakers": 2, "dress_shoes": 2}
+
+
 def make_garment(ref, body, rig, name):
     spec = GARMENTS[name]
     if spec.get("sole"):
@@ -595,6 +644,7 @@ def make_garment(ref, body, rig, name):
     bpy.context.collection.objects.link(obj)
     if spec.get("sole"):
         copy_weights(obj, ref)
+        obj["bh_boundary_loops"] = boundary_loops(obj.data)
     else:
         for g in body.vertex_groups:  # 体のグループ名をそのまま使う（変形の重みも引き継がれる）
             obj.vertex_groups.new(name=g.name)
@@ -603,11 +653,10 @@ def make_garment(ref, body, rig, name):
         # シミュレーション後に裾・首回り・ウエスト・足首をもう一度整える
         bm = bmesh.new()
         bm.from_mesh(obj.data)
-        apply_trims(bm, ref, name)
-        if spec.get("collar"):
-            pass
+        apply_trims(bm, ref, name, merge=False)
         bm.to_mesh(obj.data)
         bm.free()
+    obj["bh_boundary_loops"] = boundary_loops(obj.data)
     bpy.context.view_layer.objects.active = obj
     solid = obj.modifiers.new("BH_thickness", "SOLIDIFY")
     solid.thickness = spec["thickness"]
