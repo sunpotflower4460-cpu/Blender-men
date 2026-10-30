@@ -142,11 +142,15 @@ def region_shoes(ref, co, bone):
 
 
 def ease_tshirt(ref, co, bone):
+    """胸と袖は、筋肉の多い体型でガードの姿勢を取っても肌が突き抜けないだけのゆとりを取る
+    （小柄でがっしりした体型の検証で、胸・上腕の突き出しが 3.8% になったため広げた）。"""
     pelvis_h, _ = ref.bones["pelvis"]
     if bone.startswith("upperarm"):
-        return 0.016
+        # 付け根は 0.022（0.030 にすると脇の下で布に穴が開く: 開口部の検査で検出）。
+        # 袖口へ向かって広げ、腕を曲げて二の腕が盛り上がっても袖口が食い込まないようにする
+        return 0.022 + 0.020 * max(0.0, min(1.0, ref.along(co, bone) / 0.48))
     belly = 1.0 - min(1.0, max(0.0, (co.z - pelvis_h.z) / 0.35))
-    return 0.014 + 0.020 * belly
+    return 0.020 + 0.014 * belly
 
 
 def ease_dress_shirt(ref, co, bone):
@@ -416,7 +420,7 @@ def smooth_boundary(bm, ref, iterations=4):
             v.co = co
 
 
-def apply_trims(bm, ref, name, merge=True):
+def apply_trims(bm, ref, name, merge=True, sleeves=True):
     trim = TRIMS.get(name)
     if not trim:
         return
@@ -424,7 +428,7 @@ def apply_trims(bm, ref, name, merge=True):
         bone, off = trim["hem"]
         h, _ = ref.bones[bone]
         cut(bm, Vector((0, 0, h.z + off)), Vector((0, 0, -1)))
-    if "sleeve" in trim:
+    if "sleeve" in trim and sleeves:
         for side in ("l", "r"):
             cut_sleeve(bm, ref, side, trim["sleeve"])
     if "waist" in trim:
@@ -713,7 +717,8 @@ def make_garment(ref, body, rig, name):
         # シミュレーション後に裾・首回り・ウエスト・足首をもう一度整える
         bm = bmesh.new()
         bm.from_mesh(obj.data)
-        apply_trims(bm, ref, name, merge=False)
+        # 袖口はシミュレーション前に切ってある。垂れた袖を平面で切り直すと、しわが切断面と交差して穴が開く
+        apply_trims(bm, ref, name, merge=False, sleeves=False)
         if spec.get("collar"):
             # 襟は布シミュレーションの後、整えた首の縁から作る（先に作ると布の動きで崩れる）
             add_collar(bm, ref)

@@ -62,7 +62,7 @@ def ensure_uv(obj):
     bpy.ops.object.mode_set(mode="OBJECT")
 
 
-def covered_body_verts(ref, garment, max_dist=0.08, erode=2):
+def covered_body_verts(ref, garment, max_dist=0.08, erode=0):
     """服の下に隠れる体の頂点（評価後メッシュの番号）。法線方向へ光線を飛ばし、服に当たるものを選び、
     縁から erode 輪ぶん内側だけを残す（縁の近くは隠すと隙間が見えるため）。"""
     from mathutils.bvhtree import BVHTree

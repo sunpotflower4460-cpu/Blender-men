@@ -29,13 +29,13 @@
     "tshirt": {
       "mhclo": "clothes/tshirt/tshirt.mhclo",
       "fabric": "knit",
-      "faces": 27552,
-      "hidden_body_verts": 1461,
+      "faces": 27520,
+      "hidden_body_verts": 1742,
       "sim_reverted_verts": 0,
       "openings": 4,
-      "generate_s": 7.0,
-      "bake_s": 14.4,
-      "match_s": 48.62,
+      "generate_s": 7.8,
+      "bake_s": 14.5,
+      "match_s": 48.1,
       "license": "CC0 (generated in this repository)"
     },
     "jeans": {
