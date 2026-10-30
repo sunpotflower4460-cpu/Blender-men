@@ -74,6 +74,8 @@ def parse_args():
     parser.add_argument("--preset", default=os.path.join(REPO_ROOT, "presets", "base.json"))
     parser.add_argument("--output", help="保存先 .blend（省略時 models/<name>_human.blend）")
     parser.add_argument("--preview", help="プレビュー PNG の保存先（省略時は描画しない）")
+    parser.add_argument("--body", choices=("organic", "capsule"), default="organic",
+                        help="体表: organic=つながった人体形状, capsule=骨ごとの確認用マネキン")
     parser.add_argument("--no-rig", action="store_true", help="Rigify のコントロールリグを生成しない")
     return parser.parse_args(argv)
 
@@ -328,6 +330,140 @@ def build_body(armature, params):
     return body
 
 
+def build_body_organic(armature, params):
+    """骨格の位置を基準に、楕円メタボールを融合した連続人体メッシュを作る。"""
+    scale = params["height"] / REFERENCE_HEIGHT * params["girth"]
+    meta = bpy.data.metaballs.new("BH_body_volume")
+    meta.resolution = 0.018 * params["height"] / REFERENCE_HEIGHT
+    meta.render_resolution = meta.resolution
+    meta.threshold = 0.62
+    volume = bpy.data.objects.new("BH_body_volume", meta)
+    bpy.context.collection.objects.link(volume)
+
+    def blob(center, radii, direction=None):
+        element = meta.elements.new()
+        element.type = "ELLIPSOID"
+        element.co = center
+        element.size_x, element.size_y, element.size_z = [r * scale for r in radii]
+        if direction is not None and direction.length > 1e-6:
+            element.rotation = direction.to_track_quat("Z", "Y")
+
+    bones = armature.data.bones
+
+    def segment(name, radius_x, radius_y, extend=1.0):
+        bone = bones.get(name)
+        if bone is None:
+            return
+        direction = bone.tail_local - bone.head_local
+        length = direction.length
+        if length < 1e-5:
+            return
+        # A few overlapping ellipsoids keep long limbs tapered and avoid a single sausage-like form.
+        count = max(2, int(length / (radius_x * scale * 0.85)))
+        for i in range(count + 1):
+            t = i / count
+            center = bone.head_local.lerp(bone.tail_local, t)
+            taper = 0.88 + 0.12 * math.sin(math.pi * t)
+            blob(center, (radius_x * taper, radius_y * taper, length / count * extend), direction)
+
+    # Torso masses overlap through pelvis, waist, rib cage and shoulders.
+    segment("DEF-spine", 0.105, 0.105, 1.25)
+    segment("DEF-spine.001", 0.105, 0.100, 1.25)
+    segment("DEF-spine.002", 0.125, 0.105, 1.25)
+    segment("DEF-spine.003", 0.135, 0.100, 1.25)
+    segment("DEF-spine.004", 0.052, 0.055, 1.35)
+    segment("DEF-spine.005", 0.050, 0.052, 1.25)
+    segment("DEF-spine.006", 0.082, 0.095, 1.18)
+    head_bone = bones.get("DEF-spine.006")
+    if head_bone:
+        head_center = (head_bone.head_local + head_bone.tail_local) * 0.5
+        blob(head_center, (.078, .092, .090))
+        # Small fused facial landmarks, facing the skeleton's -Y front.
+        blob(head_center + Vector((0, -.087, -.012)), (.018, .028, .030))  # nose
+        for side in (-1, 1):
+            blob(head_center + Vector((side * .078, 0, -.005)), (.025, .035, .035))  # ears
+            blob(head_center + Vector((side * .030, -.078, .020)), (.012, .014, .010))  # eye forms
+
+    # Pelvis and gluteal mass, placed from the rig's hip joints.
+    hips = [bones.get(f"DEF-thigh.{side}") for side in ("L", "R")]
+    if all(hips):
+        center = (hips[0].head_local + hips[1].head_local) * 0.5
+        blob(center + Vector((0, 0.012, -0.015)), (0.145, 0.105, 0.105))
+        blob(center + Vector((0, 0.045, -0.025)), (0.105, 0.075, 0.085))
+
+    for side in ("L", "R"):
+        for name, rx, ry in (("shoulder", .050, .060), ("upper_arm", .045, .045),
+                             ("forearm", .034, .036), ("hand", .027, .035),
+                             ("thigh", .074, .080), ("shin", .045, .050),
+                             ("foot", .040, .075), ("toe", .032, .060)):
+            prefix = f"DEF-{name}.{side}"
+            names = sorted(b.name for b in bones
+                           if b.name == prefix or b.name.startswith(prefix + "."))
+            for bone_name in names:
+                segment(bone_name, rx, ry, 1.55)
+        for prefix, rx, ry in (("DEF-palm.", .014, .018), ("DEF-thumb.", .009, .010),
+                               ("DEF-f_index.", .008, .009), ("DEF-f_middle.", .008, .009),
+                               ("DEF-f_ring.", .008, .009), ("DEF-f_pinky.", .007, .008)):
+            for bone in bones:
+                if bone.name.startswith(prefix) and bone.name.endswith(f".{side}"):
+                    segment(bone.name, rx, ry, 1.45)
+
+    bpy.context.view_layer.objects.active = volume
+    bpy.ops.object.select_all(action="DESELECT")
+    volume.select_set(True)
+    bpy.ops.object.convert(target="MESH")
+    body = bpy.context.object
+    body.name = "BH_body"
+    body.data.name = "BH_body"
+    for poly in body.data.polygons:
+        poly.use_smooth = True
+    material = bpy.data.materials.new("BH_skin_neutral")
+    material.diffuse_color = (0.72, 0.48, 0.37, 1.0)
+    body.data.materials.append(material)
+
+    # Separate eye surfaces keep facial features readable in the fused skin volume.
+    head_bone = bones.get("DEF-spine.006")
+    if head_bone:
+        head_center = (head_bone.head_local + head_bone.tail_local) * 0.5
+        eye_material = bpy.data.materials.new("BH_eye_ivory")
+        eye_material.diffuse_color = (0.92, 0.84, 0.72, 1.0)
+        pupil_material = bpy.data.materials.new("BH_eye_dark")
+        pupil_material.diffuse_color = (0.08, 0.055, 0.04, 1.0)
+        additions = []
+        for side in (-1, 1):
+            bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=.013 * scale,
+                                                  location=head_center + Vector((side * .030 * scale, -.095 * scale, .020 * scale)))
+            eye = bpy.context.object
+            eye.name = "BH_eye"
+            eye.data.materials.append(eye_material)
+            for poly in eye.data.polygons:
+                poly.use_smooth = True
+            additions.append(eye)
+            bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=6, radius=.0045 * scale,
+                                                  location=head_center + Vector((side * .030 * scale, -.107 * scale, .020 * scale)))
+            pupil = bpy.context.object
+            pupil.name = "BH_pupil"
+            pupil.data.materials.append(pupil_material)
+            for poly in pupil.data.polygons:
+                poly.use_smooth = True
+            additions.append(pupil)
+        bpy.ops.object.select_all(action="DESELECT")
+        body.select_set(True)
+        for addition in additions:
+            addition.select_set(True)
+        bpy.context.view_layer.objects.active = body
+        bpy.ops.object.join()
+
+    # Blender computes deform weights over the fused surface, so the soft joins bend with the rig.
+    bpy.ops.object.select_all(action="DESELECT")
+    body.select_set(True)
+    armature.select_set(True)
+    bpy.context.view_layer.objects.active = armature
+    bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+    bpy.ops.object.select_all(action="DESELECT")
+    return body
+
+
 def organize(objects, params):
     coll = bpy.data.collections.new("BaseHuman")
     bpy.context.scene.collection.children.link(coll)
@@ -355,7 +491,7 @@ def render_preview(path, params):
     cam_data = bpy.data.cameras.new("PreviewCam")
     cam_data.type = "ORTHO"
     cam_data.sensor_fit = "VERTICAL"
-    cam_data.ortho_scale = h * 1.12
+    cam_data.ortho_scale = h * 1.22
     cam = bpy.data.objects.new("PreviewCam", cam_data)
     scene.collection.objects.link(cam)
     scene.camera = cam
@@ -384,7 +520,7 @@ def main():
     objects = [metarig]
     if not args.no_rig:
         rig = generate_rig(metarig)
-        body = build_body(rig, params)
+        body = build_body_organic(rig, params) if args.body == "organic" else build_body(rig, params)
         objects += [rig, body]
     organize(objects, params)
 

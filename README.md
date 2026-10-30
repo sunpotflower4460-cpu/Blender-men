@@ -99,7 +99,21 @@ python scripts/build_base_human.py --preset presets/my_character.json
 3. 自作の体メッシュを `BH_rig` に Armature 変形で親子付けする（Ctrl+P → With Automatic Weights）。
    ウェイトを付けるのは `DEF-` で始まる骨です
 
-`BH_body` はあくまで骨格確認用のマネキンなので、本番の体メッシュができたら置き換えてください。
+`BH_body` は骨格確認用の簡易メッシュです。より滑らかな形状を生成する場合は、下の `organic` モードを使えます。
+
+## 連続した人体メッシュ（開発中）
+
+`scripts/build_base_human.py` の `organic` モードは、Rigify の骨の位置から楕円体を生成し、Blender のメタボールで融合して一つの連続した表面にします。顔の目・鼻・耳の基礎形状、手指、足も追加し、生成後に自動ウェイトでリグへ結びつけます。このメッシュとプレビューは外部人体モデルを使わずに生成しています。
+
+![人体メッシュ 正面](previews/body_from_skeleton_front.png)
+
+```bash
+blender -b -P scripts/build_base_human.py -- --preset presets/base.json \
+  --body organic --output models/body_from_skeleton.blend \
+  --preview previews/body_from_skeleton.png
+```
+
+`--body capsule` は従来の骨ごとのマネキンを生成します。`organic` は滑らかなベース形状の試作段階で、解剖学的な筋肉・顔の造形やウェイト調整は今後の作業です。
 
 ## 関節の確認
 
