@@ -29,13 +29,13 @@
     "tshirt": {
       "mhclo": "clothes/tshirt/tshirt.mhclo",
       "fabric": "knit",
-      "faces": 27544,
+      "faces": 27552,
       "hidden_body_verts": 1461,
       "sim_reverted_verts": 0,
       "openings": 4,
       "generate_s": 7.0,
-      "bake_s": 14.0,
-      "match_s": 48.52,
+      "bake_s": 14.4,
+      "match_s": 48.62,
       "license": "CC0 (generated in this repository)"
     },
     "jeans": {
@@ -65,13 +65,13 @@
     "dress_shirt": {
       "mhclo": "clothes/dress_shirt/dress_shirt.mhclo",
       "fabric": "cotton",
-      "faces": 40988,
-      "hidden_body_verts": 2318,
+      "faces": 41096,
+      "hidden_body_verts": 2353,
       "sim_reverted_verts": 0,
       "openings": 4,
-      "generate_s": 11.5,
+      "generate_s": 10.9,
       "bake_s": 17.2,
-      "match_s": 65.03,
+      "match_s": 64.08,
       "license": "CC0 (generated in this repository)"
     },
     "slacks": {

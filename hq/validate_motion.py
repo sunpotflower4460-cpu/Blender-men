@@ -42,6 +42,8 @@ def parse_args():
     p.add_argument("--render-dir", required=True)
     p.add_argument("--report", required=True)
     p.add_argument("--save-posed", help="ポーズ付きの .blend を保存する（任意）")
+    p.add_argument("--image-format", default="JPEG", choices=["JPEG", "AUTO", "WEBP"],
+                   help="GLB に埋め込む画像の形式（JPEG は容量が小さい。形状の検証には影響しない）")
     return p.parse_args(argv)
 
 
@@ -327,7 +329,8 @@ def main():
     os.makedirs(os.path.dirname(os.path.abspath(args.glb)), exist_ok=True)
     bpy.ops.export_scene.gltf(filepath=os.path.abspath(args.glb), export_format="GLB", use_selection=True,
                               export_apply=True, export_animations=True, export_skins=True,
-                              export_morph=False, export_all_influences=False, export_yup=True)
+                              export_morph=False, export_all_influences=False, export_yup=True,
+                              export_image_format=args.image_format)
     report["glb_check"]["size_bytes"] = os.path.getsize(args.glb)
 
     # 読み込み直して比較
