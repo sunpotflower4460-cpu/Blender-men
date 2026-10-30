@@ -1,0 +1,12 @@
+{
+  "name": "man_character",
+  "description": "架空のキャラクター: 50代・やや引き締まった男性（スーツ姿）",
+  "height": 1.74,
+  "leg_length": 1.0,
+  "torso_length": 1.0,
+  "arm_length": 1.0,
+  "shoulder_width": 1.04,
+  "hip_width": 1.02,
+  "head_scale": 1.0,
+  "girth": 1.12
+}
