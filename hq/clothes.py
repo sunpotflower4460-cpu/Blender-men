@@ -33,6 +33,7 @@ class BodyRef:
         self.mesh = bpy.data.meshes.new_from_object(body.evaluated_get(deps), preserve_all_data_layers=True,
                                                     depsgraph=deps)
         self.mesh.name = "BH_bodyref"
+        self.proxy = self._smoothed_copy(self.mesh)
         self.bvh = BVHTree.FromObject(body, deps)
         self.names = {g.index: g.name for g in body.vertex_groups}
         self.bones = {b.name: (rig.matrix_world @ b.head_local, rig.matrix_world @ b.tail_local)
@@ -56,8 +57,26 @@ class BodyRef:
         loc, normal, _, _ = self.bvh.find_nearest(p)
         return loc, normal
 
+    @staticmethod
+    def _smoothed_copy(mesh, iterations=30):
+        """へそ・乳首・膝などの凹凸を消した体の下地。服の型紙はここから取る。
+
+        普通の平滑化なので全体が少し縮むが、ゆとりは実際の体からの距離で決めるので問題ない。
+        （体積を保つ平滑化は凸部を逆に膨らませるので使わない）"""
+        bm = bmesh.new()
+        bm.from_mesh(mesh)
+        for _ in range(iterations):
+            bmesh.ops.smooth_vert(bm, verts=list(bm.verts), factor=0.5, use_axis_x=True, use_axis_y=True,
+                                  use_axis_z=True)
+        smoothed = mesh.copy()
+        smoothed.name = "BH_bodyref_smooth"
+        bm.to_mesh(smoothed)
+        bm.free()
+        return smoothed
+
     def free(self):
         bpy.data.meshes.remove(self.mesh)
+        bpy.data.meshes.remove(self.proxy)
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +156,7 @@ def ease_dress_shirt(ref, co, bone):
 
 def ease_jeans(ref, co, bone):
     if bone.startswith("calf"):
-        return 0.022 + 0.016 * min(1.0, ref.along(co, bone))
+        return 0.022 + 0.008 * min(1.0, ref.along(co, bone))
     if bone.startswith("thigh"):
         return 0.016 + 0.008 * ref.along(co, bone)
     return 0.010
@@ -145,7 +164,7 @@ def ease_jeans(ref, co, bone):
 
 def ease_slacks(ref, co, bone):
     if bone.startswith("calf"):
-        return 0.026 + 0.012 * min(1.0, ref.along(co, bone))
+        return 0.024 + 0.008 * min(1.0, ref.along(co, bone))
     if bone.startswith("thigh"):
         return 0.020 + 0.006 * ref.along(co, bone)
     return 0.011
@@ -153,7 +172,7 @@ def ease_slacks(ref, co, bone):
 
 # 布全体にかける弱い固定（ゆとりを付けた形へ引き戻す力）。重力で布がずり落ち、膝や足首で
 # しわが重なって自己交差する（裏面が黒い裂け目のように見える）のを防ぐ。
-BASE_PIN = 0.35
+BASE_PIN = 0.7
 
 
 def _armpit(ref, co):
@@ -188,17 +207,17 @@ def pin_trousers(ref, co, bone):
 
 
 GARMENTS = {
-    "tshirt": {"region": region_tshirt, "ease": ease_tshirt, "pin": pin_shirt, "sim_frames": 30,
+    "tshirt": {"region": region_tshirt, "ease": ease_tshirt, "pin": pin_shirt, "sim_frames": 10,
                "color": (0.11, 0.12, 0.14), "fabric": "knit", "thickness": 0.0025, "roughness": 0.85},
-    "jeans": {"region": region_trousers, "ease": ease_jeans, "pin": pin_trousers, "sim_frames": 30,
+    "jeans": {"region": region_trousers, "ease": ease_jeans, "pin": pin_trousers, "sim_frames": 10,
               "color": (0.055, 0.085, 0.17), "fabric": "denim", "thickness": 0.0035, "roughness": 0.8},
     "sneakers": {"region": region_shoes, "ease": lambda r, c, b: 0.0075, "pin": None, "sim_frames": 0,
                  "color": (0.78, 0.78, 0.76), "fabric": "leather", "thickness": 0.004, "roughness": 0.55,
                  "sole": {"color": (0.92, 0.92, 0.9), "height": 0.012}},
-    "dress_shirt": {"region": region_dress_shirt, "ease": ease_dress_shirt, "pin": pin_shirt, "sim_frames": 30,
+    "dress_shirt": {"region": region_dress_shirt, "ease": ease_dress_shirt, "pin": pin_shirt, "sim_frames": 10,
                     "color": (0.62, 0.71, 0.84), "fabric": "cotton", "thickness": 0.002, "roughness": 0.7,
                     "collar": True},
-    "slacks": {"region": region_trousers, "ease": ease_slacks, "pin": pin_trousers, "sim_frames": 30,
+    "slacks": {"region": region_trousers, "ease": ease_slacks, "pin": pin_trousers, "sim_frames": 10,
                "color": (0.07, 0.07, 0.08), "fabric": "wool", "thickness": 0.003, "roughness": 0.75},
     "dress_shoes": {"region": region_shoes, "ease": lambda r, c, b: 0.006, "pin": None, "sim_frames": 0,
                     "color": (0.07, 0.04, 0.025), "fabric": "leather", "thickness": 0.004, "roughness": 0.3,
@@ -216,8 +235,9 @@ OUTFITS = {
 # ---------------------------------------------------------------------------
 
 def extract_region(ref, region):
+    """範囲を、凹凸を消した体の下地（ref.proxy）から取り出す。頂点の並びと重みは体と同じ。"""
     bm = bmesh.new()
-    bm.from_mesh(ref.mesh)
+    bm.from_mesh(ref.proxy)
     deform = bm.verts.layers.deform.verify()
     keep = set()
     names = ref.names
@@ -249,8 +269,38 @@ def _bone_of(bm, deform, names, bones, v):
     return bone
 
 
-def relax_and_ease(bm, ref, ease, iterations=10):
-    """平滑化（凹凸を消す）と、体からの距離（ゆとり）への押し出しを交互に行う。"""
+def offset_and_settle(bm, ref, ease, settle=2, step=0.002, reach=0.10):
+    """下地の各点から下地の法線方向へ少しずつ進め、実際の体から外側へ ease だけ離れた所で止める。
+
+    へその上では縁の高さで止まるので布は凹みを平らに渡り、下地が体の内側にあっても外に出るまで進む。"""
+    deform = bm.verts.layers.deform.verify()
+    bm.normal_update()
+    for v in bm.verts:
+        want = ease(ref, v.co, _bone_of(bm, deform, ref.names, ref.bones, v))
+        base, direction = v.co.copy(), v.normal.copy()
+        t = 0.0
+        while t < reach:
+            p = base + direction * t
+            q, n = ref.nearest(p)
+            if (p - q).dot(n) >= want:
+                break
+            t += step
+        v.co = base + direction * t
+    boundary = {v for v in bm.verts if v.is_boundary}
+    for _ in range(settle):
+        bmesh.ops.smooth_vert(bm, verts=[v for v in bm.verts if v not in boundary], factor=0.5,
+                              use_axis_x=True, use_axis_y=True, use_axis_z=True)
+        for v in bm.verts:
+            q, n = ref.nearest(v.co)
+            if (v.co - q).dot(n) < 0.005:
+                v.co = q + n * 0.005
+
+
+def relax_and_ease(bm, ref, ease, iterations=14):
+    """平滑化（凹凸を消す）と、体からの距離（ゆとり）への押し出しを交互に行う。
+
+    体から近すぎる所だけを押し出し、離れた所は引き戻さない。引き戻すと、へそのような凹みに
+    布が吸い込まれる。実際の布は凹みの上を渡る。"""
     deform = bm.verts.layers.deform.verify()
     targets = {v: ease(ref, v.co, _bone_of(bm, deform, ref.names, ref.bones, v)) for v in bm.verts}
     boundary = {v for v in bm.verts if v.is_boundary}
@@ -265,8 +315,6 @@ def relax_and_ease(bm, ref, ease, iterations=10):
             want = targets[v]
             if dist < want:
                 v.co = q + n * want
-            elif dist > want * 1.6:
-                v.co = q + n * (want * 1.6)
 
 
 def cut(bm, point, normal, faces=None):
@@ -640,7 +688,7 @@ def make_garment(ref, body, rig, name):
         bm, covered = extract_region(ref, spec["region"])
         bmesh.ops.subdivide_edges(bm, edges=list(bm.edges), cuts=1, use_grid_fill=True, smooth=0.0)
         apply_trims(bm, ref, name)
-        relax_and_ease(bm, ref, spec["ease"])
+        offset_and_settle(bm, ref, spec["ease"])
     if spec.get("collar"):
         add_collar(bm, ref)
     mesh = bpy.data.meshes.new(f"BH_{name}")
