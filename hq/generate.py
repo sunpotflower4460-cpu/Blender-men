@@ -14,6 +14,7 @@
   python hq/generate.py --config hq/config/char_standard.json --out-dir hq/output/char_standard
   python hq/generate.py ... --force            # すべての段階をやり直す
   python hq/generate.py ... --only render       # 指定した段階だけ
+  python hq/generate.py ... --dry-run           # やり直す段階を表示するだけ
 """
 
 import argparse
@@ -42,6 +43,7 @@ def parse_args():
     p.add_argument("--force", action="store_true")
     p.add_argument("--only", default="", help="実行する段階（カンマ区切り）")
     p.add_argument("--samples", type=int, default=64)
+    p.add_argument("--dry-run", action="store_true", help="やり直す段階を表示するだけで実行しない")
     return p.parse_args()
 
 
@@ -120,6 +122,13 @@ def main():
         if not args.force and not upstream_changed and prev.get("ok") and prev.get("input_hash") == key:
             summary["stages"][stage] = dict(prev, cached=True)
             continue
+        if args.dry_run:
+            reason = ("--force" if args.force else "前の段階をやり直す" if upstream_changed
+                      else "未実行か失敗" if not prev.get("ok") else "入力が変わった")
+            summary["stages"][stage] = {"would_run": True, "reason": reason}
+            print(json.dumps({"stage": stage, "would_run": True, "reason": reason}, ensure_ascii=False))
+            upstream_changed = True
+            continue
         upstream_changed = True
         t = time.time()
         proc = subprocess.run(commands[stage], capture_output=True, text=True)
@@ -145,6 +154,10 @@ def main():
         print(json.dumps({"stage": stage, **entry}, ensure_ascii=False), flush=True)
         if not entry["ok"]:
             break
+    if args.dry_run:
+        print(json.dumps({"name": name, "would_run": [s for s, e in summary["stages"].items()
+                                                       if e.get("would_run")]}, ensure_ascii=False))
+        return
     summary["passed"] = all(state.get(s, {}).get("ok") for s in STAGES)
     summary["total_seconds"] = round(sum(state.get(s, {}).get("seconds", 0) for s in STAGES), 1)
     with open(os.path.join(out, "report.json"), "w", encoding="utf-8") as f:
